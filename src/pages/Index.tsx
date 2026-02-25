@@ -1,12 +1,37 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import LandingScreen from "@/components/LandingScreen";
+import ChatInterface from "@/components/ChatInterface";
+import ResultScreen from "@/components/ResultScreen";
+import LawyerDashboard from "@/components/LawyerDashboard";
+
+type View = "landing" | "chat" | "result" | "lawyer";
 
 const Index = () => {
+  const [view, setView] = useState<View>("landing");
+  const [chatTopic, setChatTopic] = useState<string | undefined>();
+
+  const startChat = (topic?: string) => {
+    setChatTopic(topic);
+    setView("chat");
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="mx-auto w-full max-w-app min-h-screen">
+      {view === "landing" && <LandingScreen onStartChat={startChat} />}
+      {view === "chat" && (
+        <ChatInterface
+          onBack={() => setView("landing")}
+          onShowResult={() => setView("result")}
+          initialTopic={chatTopic}
+        />
+      )}
+      {view === "result" && (
+        <ResultScreen
+          onBack={() => setView("chat")}
+          onLawyerDashboard={() => setView("lawyer")}
+        />
+      )}
+      {view === "lawyer" && <LawyerDashboard onBack={() => setView("result")} />}
     </div>
   );
 };
