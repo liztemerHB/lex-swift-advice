@@ -1,5 +1,6 @@
 import { ArrowLeft, Scale, Briefcase, Clock, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { useState } from "react";
 
 interface LawyerDashboardProps {
@@ -31,11 +32,15 @@ const statusConfig = {
 
 const LawyerDashboard = ({ onBack }: LawyerDashboardProps) => {
   const [leads, setLeads] = useState(LEADS);
+  const [confirmLeadId, setConfirmLeadId] = useState<number | null>(null);
 
-  const handleTake = (id: number) => {
-    setLeads((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, status: "in_progress" as const, statusLabel: "В работе" } : l))
-    );
+  const handleConfirm = () => {
+    if (confirmLeadId !== null) {
+      setLeads((prev) =>
+        prev.map((l) => (l.id === confirmLeadId ? { ...l, status: "in_progress" as const, statusLabel: "В работе" } : l))
+      );
+      setConfirmLeadId(null);
+    }
   };
 
   return (
@@ -102,7 +107,7 @@ const LawyerDashboard = ({ onBack }: LawyerDashboardProps) => {
                       variant="hero"
                       size="sm"
                       className="rounded-lg text-xs"
-                      onClick={() => handleTake(lead.id)}
+                      onClick={() => setConfirmLeadId(lead.id)}
                     >
                       Взять в работу
                     </Button>
@@ -113,6 +118,26 @@ const LawyerDashboard = ({ onBack }: LawyerDashboardProps) => {
           })}
         </div>
       </div>
+
+      {/* Confirm Purchase Dialog */}
+      <Dialog open={confirmLeadId !== null} onOpenChange={(open) => !open && setConfirmLeadId(null)}>
+        <DialogContent className="max-w-[340px] rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Открыть контакты клиента?</DialogTitle>
+            <DialogDescription>
+              Стоимость: 500 ₽. Спишется с баланса.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-2 sm:flex-row">
+            <DialogClose asChild>
+              <Button variant="outline" className="flex-1 rounded-xl">Отмена</Button>
+            </DialogClose>
+            <Button variant="hero" className="flex-1 rounded-xl" onClick={handleConfirm}>
+              Подтвердить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
