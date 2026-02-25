@@ -1,5 +1,9 @@
-import { ArrowLeft, FileText, UserCheck, CheckCircle2, AlertTriangle, Lock } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, FileText, UserCheck, CheckCircle2, AlertTriangle, Lock, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 
 interface ResultScreenProps {
   onBack: () => void;
@@ -13,6 +17,17 @@ const STEPS = [
 ];
 
 const ResultScreen = ({ onBack, onLawyerDashboard }: ResultScreenProps) => {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [contact, setContact] = useState("");
+  const [agreed, setAgreed] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = () => {
+    if (contact.trim() && agreed) {
+      setSubmitted(true);
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
@@ -109,6 +124,7 @@ const ResultScreen = ({ onBack, onLawyerDashboard }: ResultScreenProps) => {
           <Button
             variant="outline"
             className="w-full rounded-xl border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground"
+            onClick={() => setDrawerOpen(true)}
           >
             Связаться с юристом
           </Button>
@@ -124,6 +140,56 @@ const ResultScreen = ({ onBack, onLawyerDashboard }: ResultScreenProps) => {
           </button>
         </div>
       </div>
+
+      {/* Lawyer Contact Drawer */}
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DrawerContent>
+          <DrawerHeader className="text-left">
+            <DrawerTitle>Передача дела</DrawerTitle>
+            <DrawerDescription>Оставьте контакт, и юрист свяжется с вами</DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-6 space-y-4">
+            {!submitted ? (
+              <>
+                <Input
+                  placeholder="Ваш телефон или Telegram"
+                  value={contact}
+                  onChange={(e) => setContact(e.target.value)}
+                  className="rounded-xl"
+                />
+                <div className="flex items-start gap-2">
+                  <Checkbox
+                    id="agree"
+                    checked={agreed}
+                    onCheckedChange={(v) => setAgreed(v === true)}
+                    className="mt-0.5"
+                  />
+                  <label htmlFor="agree" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+                    Я соглашаюсь с политикой конфиденциальности и обработкой персональных данных
+                  </label>
+                </div>
+                <Button
+                  variant="hero"
+                  className="w-full rounded-xl"
+                  disabled={!contact.trim() || !agreed}
+                  onClick={handleSubmit}
+                >
+                  <Send className="h-4 w-4" />
+                  Отправить досье
+                </Button>
+              </>
+            ) : (
+              <div className="flex flex-col items-center gap-3 py-4 text-center">
+                <CheckCircle2 className="h-10 w-10 text-primary" />
+                <p className="text-sm font-semibold text-foreground">Заявка принята</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Юрист свяжется с вами в ближайшее время, он уже ознакамливается с вашей ситуацией.
+                </p>
+              </div>
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
