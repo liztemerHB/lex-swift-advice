@@ -108,6 +108,15 @@ Deno.serve(async (req) => {
     if (n8nText && n8nText.trim().length > 0) {
       try {
         n8nData = JSON.parse(n8nText);
+        // n8n sometimes wraps response in an array
+        if (Array.isArray(n8nData)) n8nData = n8nData[0] ?? {};
+        // n8n sometimes wraps in { data: ... } or { body: ... } or { json: ... }
+        if (n8nData && typeof n8nData === "object" && !n8nData.reply) {
+          if (n8nData.data && typeof n8nData.data === "object") n8nData = n8nData.data;
+          else if (n8nData.body && typeof n8nData.body === "object") n8nData = n8nData.body;
+          else if (n8nData.json && typeof n8nData.json === "object") n8nData = n8nData.json;
+          else if (n8nData.output && typeof n8nData.output === "object") n8nData = n8nData.output;
+        }
       } catch (e) {
         console.error("n8n returned non-JSON response:", n8nText);
         return new Response(
@@ -130,8 +139,11 @@ Deno.serve(async (req) => {
 
     const reply: string = n8nData?.reply ?? "";
     const isComplete: boolean = !!n8nData?.is_fact_gathering_complete;
-    const patch = n8nData?.case_patch ?? {};
-    const nextSteps: string[] = Array.isArray(n8nData?.next_steps) ? n8nData.next_steps : [];
+    const patch = (n8nData?.case_patch && typeof n8nData.case_patch === "object") ? n8nData.case_patch : {};
+    const nextSteps: string[] = Array.isArray(n8nData?.next_steps)
+      ? n8nData.next_steps
+      : Array.isArray(patch?.next_steps) ? patch.next_steps : [];
+    console.log("n8n parsed patch:", JSON.stringify(patch), "nextSteps:", nextSteps.length);
 
     if (reply) {
       await admin.from("case_messages").insert({

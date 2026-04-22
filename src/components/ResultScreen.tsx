@@ -26,9 +26,12 @@ interface CaseRow {
 }
 
 const urgencyLabel = (u: string | null) => {
-  if (u === "high") return { label: "Высокий", color: "text-destructive bg-destructive/10" };
-  if (u === "medium") return { label: "Средний", color: "text-amber-600 bg-amber-50" };
-  return { label: "Низкий", color: "text-emerald-600 bg-emerald-50" };
+  const key = (u ?? "").toLowerCase();
+  if (key === "emergency") return { label: "Срочный", color: "text-destructive bg-destructive/15" };
+  if (key === "high") return { label: "Высокий", color: "text-destructive bg-destructive/10" };
+  if (key === "medium") return { label: "Средний", color: "text-amber-600 bg-amber-50" };
+  if (key === "low") return { label: "Низкий", color: "text-emerald-600 bg-emerald-50" };
+  return { label: "—", color: "text-muted-foreground bg-muted" };
 };
 
 const ResultScreen = ({ onBack, onLawyerDashboard, caseId }: ResultScreenProps) => {
