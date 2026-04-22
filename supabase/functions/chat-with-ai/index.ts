@@ -95,16 +95,39 @@ Deno.serve(async (req) => {
       }),
     });
 
+    const n8nText = await n8nResp.text();
     if (!n8nResp.ok) {
-      const txt = await n8nResp.text();
-      console.error("n8n error", n8nResp.status, txt);
+      console.error("n8n error", n8nResp.status, n8nText);
       return new Response(
-        JSON.stringify({ error: "Ошибка ИИ-сервиса", details: txt }),
+        JSON.stringify({ error: "Ошибка ИИ-сервиса", details: n8nText }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const n8nData = await n8nResp.json();
+    let n8nData: any = {};
+    if (n8nText && n8nText.trim().length > 0) {
+      try {
+        n8nData = JSON.parse(n8nText);
+      } catch (e) {
+        console.error("n8n returned non-JSON response:", n8nText);
+        return new Response(
+          JSON.stringify({
+            error: "ИИ-сервис вернул некорректный ответ. Проверьте, что n8n workflow возвращает JSON с полем 'reply'.",
+            raw: n8nText.slice(0, 500),
+          }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      console.error("n8n returned empty body");
+      return new Response(
+        JSON.stringify({
+          error: "ИИ-сервис вернул пустой ответ. Проверьте, что n8n workflow активен и возвращает JSON.",
+        }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const reply: string = n8nData?.reply ?? "";
     const isComplete: boolean = !!n8nData?.is_fact_gathering_complete;
     const patch = n8nData?.case_patch ?? {};
