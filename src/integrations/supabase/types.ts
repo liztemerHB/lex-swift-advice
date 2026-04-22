@@ -14,6 +14,212 @@ export type Database = {
   }
   public: {
     Tables: {
+      case_messages: {
+        Row: {
+          case_id: string
+          content: string
+          created_at: string
+          id: string
+          role: string
+        }
+        Insert: {
+          case_id: string
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+        }
+        Update: {
+          case_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_messages_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cases: {
+        Row: {
+          category: string | null
+          city: string | null
+          consent_at: string | null
+          consent_personal_data: boolean
+          consent_version: string | null
+          created_at: string
+          estimated_damage: number | null
+          facts: Json | null
+          id: string
+          is_fact_gathering_complete: boolean
+          next_steps: Json | null
+          privacy_policy_accepted: boolean
+          problem_summary: string | null
+          updated_at: string
+          urgency: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          city?: string | null
+          consent_at?: string | null
+          consent_personal_data?: boolean
+          consent_version?: string | null
+          created_at?: string
+          estimated_damage?: number | null
+          facts?: Json | null
+          id?: string
+          is_fact_gathering_complete?: boolean
+          next_steps?: Json | null
+          privacy_policy_accepted?: boolean
+          problem_summary?: string | null
+          updated_at?: string
+          urgency?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          city?: string | null
+          consent_at?: string | null
+          consent_personal_data?: boolean
+          consent_version?: string | null
+          created_at?: string
+          estimated_damage?: number | null
+          facts?: Json | null
+          id?: string
+          is_fact_gathering_complete?: boolean
+          next_steps?: Json | null
+          privacy_policy_accepted?: boolean
+          problem_summary?: string | null
+          updated_at?: string
+          urgency?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      lead_contacts: {
+        Row: {
+          consent_personal_data: boolean
+          consent_transfer_to_lawyer: boolean
+          contact: string
+          created_at: string
+          id: string
+          lead_id: string
+          privacy_policy_accepted: boolean
+        }
+        Insert: {
+          consent_personal_data?: boolean
+          consent_transfer_to_lawyer?: boolean
+          contact: string
+          created_at?: string
+          id?: string
+          lead_id: string
+          privacy_policy_accepted?: boolean
+        }
+        Update: {
+          consent_personal_data?: boolean
+          consent_transfer_to_lawyer?: boolean
+          contact?: string
+          created_at?: string
+          id?: string
+          lead_id?: string
+          privacy_policy_accepted?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_contacts_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_purchases: {
+        Row: {
+          created_at: string
+          id: string
+          lawyer_id: string
+          lead_id: string
+          price_rub: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lawyer_id: string
+          lead_id: string
+          price_rub: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lawyer_id?: string
+          lead_id?: string
+          price_rub?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_purchases_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          case_id: string
+          category: string | null
+          city: string | null
+          created_at: string
+          estimated_damage: number | null
+          id: string
+          price_rub: number
+          public_summary: string | null
+          status: string
+          urgency: string | null
+        }
+        Insert: {
+          case_id: string
+          category?: string | null
+          city?: string | null
+          created_at?: string
+          estimated_damage?: number | null
+          id?: string
+          price_rub?: number
+          public_summary?: string | null
+          status?: string
+          urgency?: string | null
+        }
+        Update: {
+          case_id?: string
+          category?: string | null
+          city?: string | null
+          created_at?: string
+          estimated_damage?: number | null
+          id?: string
+          price_rub?: number
+          public_summary?: string | null
+          status?: string
+          urgency?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
