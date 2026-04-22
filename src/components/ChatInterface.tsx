@@ -43,6 +43,19 @@ const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProp
     await sendMessage(text, isFirst ? { personalData: true, privacyPolicy: true } : undefined);
   };
 
+  const handleQuickCategory = async (category: string) => {
+    if (!consented || isTyping) return;
+    const isFirst = messages.length === 0;
+    await sendMessage(
+      `У меня проблема: ${category}`,
+      isFirst ? { personalData: true, privacyPolicy: true } : undefined
+    );
+  };
+
+  const QUICK_CATEGORIES = ["ДТП", "Залив квартиры", "Развод", "Потребительский спор", "Трудовой спор", "Другое"];
+  const WELCOME_TEXT =
+    "Здравствуйте. Опишите вашу юридическую проблему простыми словами: что случилось, когда, где и кто участвует. Я помогу понять срочность, собрать факты и подготовить план действий.";
+
   const isComplete = caseData?.is_fact_gathering_complete === true;
 
   return (
@@ -63,11 +76,28 @@ const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProp
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-        {!consented && messages.length === 0 && (
+        {messages.length === 0 && (
           <div className="flex justify-start animate-fade-in">
-            <div className="max-w-[80%] rounded-2xl rounded-bl-md surface-chat-ai px-4 py-2.5 text-sm text-foreground">
-              Здравствуйте! Я ИИ-помощник LexTriage. Подтвердите согласие, чтобы начать.
+            <div className="max-w-[85%] rounded-2xl rounded-bl-md surface-chat-ai px-4 py-2.5 text-sm leading-relaxed text-foreground">
+              {consented
+                ? WELCOME_TEXT
+                : "Здравствуйте! Я ИИ-помощник LexTriage. Подтвердите согласие, чтобы начать."}
             </div>
+          </div>
+        )}
+
+        {messages.length === 0 && consented && (
+          <div className="flex flex-wrap gap-2 pt-1 animate-fade-in">
+            {QUICK_CATEGORIES.map((c) => (
+              <button
+                key={c}
+                onClick={() => handleQuickCategory(c)}
+                disabled={isTyping}
+                className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary transition-colors disabled:opacity-50"
+              >
+                {c}
+              </button>
+            ))}
           </div>
         )}
 
