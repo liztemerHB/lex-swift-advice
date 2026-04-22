@@ -43,6 +43,19 @@ const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProp
     await sendMessage(text, isFirst ? { personalData: true, privacyPolicy: true } : undefined);
   };
 
+  const handleQuickCategory = async (category: string) => {
+    if (!consented || isTyping) return;
+    const isFirst = messages.length === 0;
+    await sendMessage(
+      `У меня проблема: ${category}`,
+      isFirst ? { personalData: true, privacyPolicy: true } : undefined
+    );
+  };
+
+  const QUICK_CATEGORIES = ["ДТП", "Залив квартиры", "Развод", "Потребительский спор", "Трудовой спор", "Другое"];
+  const WELCOME_TEXT =
+    "Здравствуйте. Опишите вашу юридическую проблему простыми словами: что случилось, когда, где и кто участвует. Я помогу понять срочность, собрать факты и подготовить план действий.";
+
   const isComplete = caseData?.is_fact_gathering_complete === true;
 
   return (
