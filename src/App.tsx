@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/Auth";
+import Privacy from "./pages/Privacy";
+import LawyerDashboard from "./components/LawyerDashboard";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Overview from "./pages/admin/Overview";
 import Users from "./pages/admin/Users";
@@ -24,11 +26,13 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/" element={<Index />} />
             <Route
-              path="/"
+              path="/lawyer"
               element={
-                <ProtectedRoute>
-                  <Index />
+                <ProtectedRoute requiredRole="lawyer">
+                  <LawyerDashboard />
                 </ProtectedRoute>
               }
             />
@@ -44,7 +48,6 @@ const App = () => (
               <Route path="users" element={<Users />} />
               <Route path="cases" element={<Cases />} />
             </Route>
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

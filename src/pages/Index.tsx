@@ -1,14 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import LandingScreen from "@/components/LandingScreen";
 import ChatInterface from "@/components/ChatInterface";
 import ResultScreen from "@/components/ResultScreen";
-import LawyerDashboard from "@/components/LawyerDashboard";
 
-type View = "landing" | "chat" | "result" | "lawyer";
+type View = "landing" | "chat" | "result";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [view, setView] = useState<View>("landing");
   const [chatTopic, setChatTopic] = useState<string | undefined>();
+  const [activeCaseId, setActiveCaseId] = useState<string | null>(null);
 
   const startChat = (topic?: string) => {
     setChatTopic(topic);
@@ -21,17 +23,20 @@ const Index = () => {
       {view === "chat" && (
         <ChatInterface
           onBack={() => setView("landing")}
-          onShowResult={() => setView("result")}
+          onShowResult={(id) => {
+            setActiveCaseId(id);
+            setView("result");
+          }}
           initialTopic={chatTopic}
         />
       )}
-      {view === "result" && (
+      {view === "result" && activeCaseId && (
         <ResultScreen
+          caseId={activeCaseId}
           onBack={() => setView("chat")}
-          onLawyerDashboard={() => setView("lawyer")}
+          onLawyerDashboard={() => navigate("/lawyer")}
         />
       )}
-      {view === "lawyer" && <LawyerDashboard onBack={() => setView("result")} />}
     </div>
   );
 };

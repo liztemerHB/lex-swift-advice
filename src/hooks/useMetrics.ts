@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-// import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardMetrics {
   totalUsers: number;
@@ -17,31 +17,55 @@ export const useMetrics = () => {
 
   useEffect(() => {
     const load = async () => {
-      // TODO: заменить на реальные запросы
-      // const { count: totalUsers } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-      // const { data: leads } = await supabase.from('leads').select('price').eq('status', 'sold');
+      try {
+        const [profilesRes, casesRes, leadsRes, purchasesRes] = await Promise.all([
+          supabase.from("profiles").select("*", { count: "exact", head: true }),
+          supabase.from("cases").select("category, is_fact_gathering_complete", { count: "exact" }),
+          supabase.from("leads").select("status, price_rub", { count: "exact" }),
+          supabase.from("lead_purchases").select("price_rub", { count: "exact" }),
+        ]);
 
-      await new Promise((r) => setTimeout(r, 300));
-      setData({
-        totalUsers: 1284,
-        activeChats: 47,
-        leadsSold: 312,
-        revenue: 156000,
-        deltas: { totalUsers: 12, activeChats: 8, leadsSold: 23, revenue: 18 },
-        funnel: [
-          { stage: "Регистрация", value: 1284 },
-          { stage: "Чат начат", value: 892 },
-          { stage: "PDF куплен", value: 421 },
-          { stage: "Лид продан", value: 312 },
-        ],
-        categories: [
-          { name: "ДТП", value: 38 },
-          { name: "Развод", value: 24 },
-          { name: "Залив", value: 22 },
-          { name: "Прочее", value: 16 },
-        ],
-      });
-      setLoading(false);
+        const totalUsers = profilesRes.count ?? 0;
+        const cases = casesRes.data ?? [];
+        const leads = leadsRes.data ?? [];
+        const purchases = purchasesRes.data ?? [];
+
+        const activeChats = cases.filter((c: any) => !c.is_fact_gathering_complete).length;
+        const leadsSold = leads.filter((l: any) => l.status === "sold").length;
+        const revenue = purchases.reduce((s: number, p: any) => s + (p.price_rub ?? 0), 0);
+
+        const completeCases = cases.filter((c: any) => c.is_fact_gathering_complete).length;
+        const funnel = [
+          { stage: "Регистрация", value: totalUsers },
+          { stage: "Чат начат", value: cases.length },
+          { stage: "Досье собрано", value: completeCases },
+          { stage: "Лид продан", value: leadsSold },
+        ];
+
+        const catMap = new Map<string, number>();
+        cases.forEach((c: any) => {
+          const k = c.category || "Прочее";
+          catMap.set(k, (catMap.get(k) ?? 0) + 1);
+        });
+        const categories = Array.from(catMap.entries())
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => b.value - a.value)
+          .slice(0, 6);
+
+        setData({
+          totalUsers,
+          activeChats,
+          leadsSold,
+          revenue,
+          deltas: { totalUsers: 0, activeChats: 0, leadsSold: 0, revenue: 0 },
+          funnel,
+          categories: categories.length ? categories : [{ name: "Нет данных", value: 1 }],
+        });
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, []);

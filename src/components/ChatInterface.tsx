@@ -1,24 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, SendHorizontal, Scale, Mic } from "lucide-react";
+import { ArrowLeft, SendHorizontal, Scale, Mic, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface Message {
-  id: number;
-  role: "ai" | "user";
-  text: string;
-}
-
-const CONVERSATION: Message[] = [
-  { id: 1, role: "ai", text: "Здравствуйте! Я ИИ-помощник LexTriage. Опишите вашу проблему в свободной форме." },
-  { id: 2, role: "user", text: "Меня затопили соседи сверху, что делать?" },
-  { id: 3, role: "ai", text: "Понял, ситуация с заливом квартиры. Уточню несколько деталей:\n\n1. Когда произошёл залив?\n2. Вы уже составляли акт осмотра с управляющей компанией?\n3. Есть ли оценка ущерба?" },
-  { id: 4, role: "user", text: "Вчера вечером. Акт пока не составляли. Ущерб примерно 150 000 руб." },
-  { id: 5, role: "ai", text: "Спасибо, я собрал достаточно информации для анализа. Подготовил для вас алгоритм действий и могу сгенерировать претензию. Перейдите к результатам." },
-];
+import { useChat } from "@/hooks/useChat";
+import ConsentSheet from "@/components/ConsentSheet";
 
 interface ChatInterfaceProps {
   onBack: () => void;
-  onShowResult: () => void;
+  onShowResult: (caseId: string) => void;
   initialTopic?: string;
 }
 
@@ -31,48 +19,34 @@ const TypingIndicator = () => (
 );
 
 const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProps) => {
-  const [visibleMessages, setVisibleMessages] = useState<Message[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [inputValue, setInputValue] = useState("");
-  const [chatComplete, setChatComplete] = useState(false);
+  const { messages, isTyping, error, caseId, caseData, sendMessage } = useChat();
+  const [inputValue, setInputValue] = useState(initialTopic ?? "");
   const [isRecording, setIsRecording] = useState(false);
+  const [consentOpen, setConsentOpen] = useState(true);
+  const [consented, setConsented] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const currentIdx = useRef(0);
-
-  useEffect(() => {
-    const showNext = () => {
-      if (currentIdx.current >= CONVERSATION.length) {
-        setChatComplete(true);
-        return;
-      }
-
-      const msg = CONVERSATION[currentIdx.current];
-
-      if (msg.role === "ai") {
-        setIsTyping(true);
-        setTimeout(() => {
-          setIsTyping(false);
-          setVisibleMessages((prev) => [...prev, msg]);
-          currentIdx.current++;
-          setTimeout(showNext, 800);
-        }, 1200);
-      } else {
-        setVisibleMessages((prev) => [...prev, msg]);
-        currentIdx.current++;
-        setTimeout(showNext, 600);
-      }
-    };
-
-    setTimeout(showNext, 500);
-  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [visibleMessages, isTyping]);
+  }, [messages, isTyping]);
+
+  const handleConsent = () => {
+    setConsented(true);
+    setConsentOpen(false);
+  };
+
+  const handleSend = async () => {
+    const text = inputValue.trim();
+    if (!text || isTyping || !consented) return;
+    setInputValue("");
+    const isFirst = messages.length === 0;
+    await sendMessage(text, isFirst ? { personalData: true, privacyPolicy: true } : undefined);
+  };
+
+  const isComplete = caseData?.is_fact_gathering_complete === true;
 
   return (
     <div className="flex h-screen flex-col bg-background">
-      {/* Header */}
       <header className="flex items-center gap-3 border-b border-border px-4 py-3">
         <button onClick={onBack} className="text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-5 w-5" />
@@ -83,14 +57,21 @@ const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProp
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">LexTriage AI</p>
-            <p className="text-xs text-muted-foreground">Онлайн</p>
+            <p className="text-xs text-muted-foreground">{isTyping ? "Печатает…" : "Онлайн"}</p>
           </div>
         </div>
       </header>
 
-      {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-        {visibleMessages.map((msg) => (
+        {!consented && messages.length === 0 && (
+          <div className="flex justify-start animate-fade-in">
+            <div className="max-w-[80%] rounded-2xl rounded-bl-md surface-chat-ai px-4 py-2.5 text-sm text-foreground">
+              Здравствуйте! Я ИИ-помощник LexTriage. Подтвердите согласие, чтобы начать.
+            </div>
+          </div>
+        )}
+
+        {messages.map((msg) => (
           <div
             key={msg.id}
             className={`flex animate-fade-in ${msg.role === "user" ? "justify-end" : "justify-start"}`}
@@ -102,7 +83,7 @@ const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProp
                   : "surface-chat-ai text-foreground rounded-bl-md"
               }`}
             >
-              {msg.text}
+              {msg.content}
             </div>
           </div>
         ))}
@@ -113,28 +94,37 @@ const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProp
           </div>
         )}
 
-        {chatComplete && (
+        {error && (
+          <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            <AlertCircle className="h-3.5 w-3.5" />
+            {error}
+          </div>
+        )}
+
+        {(isComplete || messages.filter((m) => m.role === "assistant").length >= 3) && caseId && (
           <div className="flex justify-center pt-4 animate-fade-in">
-            <Button variant="hero" className="rounded-xl" onClick={onShowResult}>
-              Смотреть результаты →
+            <Button variant="hero" className="rounded-xl" onClick={() => onShowResult(caseId)}>
+              {isComplete ? "Смотреть результаты →" : "Показать план действий →"}
             </Button>
           </div>
         )}
       </div>
 
-      {/* Input */}
       <div className="border-t border-border px-4 py-3">
         <div className="flex items-center gap-2 rounded-xl bg-secondary px-3 py-2">
           <input
             type="text"
-            placeholder="Опишите проблему..."
+            placeholder={consented ? "Опишите проблему..." : "Подтвердите согласие выше"}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className="flex-1 bg-transparent px-1 text-sm text-foreground placeholder:text-muted-foreground outline-none"
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            disabled={!consented || isTyping}
+            className="flex-1 bg-transparent px-1 text-sm text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-50"
           />
           <button
             onClick={() => setIsRecording((r) => !r)}
             aria-label={isRecording ? "Остановить запись" : "Записать голосом"}
+            disabled={!consented}
             className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-all ${
               isRecording
                 ? "bg-primary text-primary-foreground shadow-button animate-pulse"
@@ -146,11 +136,17 @@ const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProp
               <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
             )}
           </button>
-          <button className="flex h-9 w-9 items-center justify-center rounded-full text-primary hover:bg-background transition-colors">
+          <button
+            onClick={handleSend}
+            disabled={!consented || isTyping || !inputValue.trim()}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-primary hover:bg-background transition-colors disabled:opacity-40"
+          >
             <SendHorizontal className="h-5 w-5" />
           </button>
         </div>
       </div>
+
+      <ConsentSheet open={consentOpen} onAccept={handleConsent} onOpenChange={setConsentOpen} />
     </div>
   );
 };
