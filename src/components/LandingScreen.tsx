@@ -19,7 +19,7 @@ const LandingScreen = ({ onStartChat }: LandingScreenProps) => {
       <header className="flex items-center justify-between px-5 py-4">
         <div className="flex items-center gap-2">
           <Scale className="h-6 w-6 text-primary" />
-          <span className="text-lg font-bold tracking-tight text-foreground">LexTriage</span>
+          <span className="text-lg font-bold tracking-tight text-foreground">LexAdvice</span>
         </div>
       </header>
 
@@ -29,18 +29,18 @@ const LandingScreen = ({ onStartChat }: LandingScreenProps) => {
           {/* Badge */}
           <div className="mx-auto mb-6 inline-flex items-center gap-1.5 rounded-full glow-blue px-3.5 py-1.5 text-xs font-medium text-primary opacity-0 animate-fade-up">
             <Sparkles className="h-3.5 w-3.5" />
-            ИИ-юрист нового поколения
+            Твой юридический советник
           </div>
 
           {/* Headline */}
           <h1 className="mb-4 text-[2rem] font-extrabold leading-[1.15] tracking-tight text-foreground opacity-0 animate-fade-up-delay-1">
-            Решим вашу юридическую проблему за{" "}
-            <span className="text-gradient-hero">2 минуты.</span>
+            Не знаете, что делать? Начните с{" "}
+            <span className="text-gradient-hero">LexAdvice.</span>
           </h1>
 
           {/* Subheadline */}
           <p className="mb-8 text-base leading-relaxed text-muted-foreground opacity-0 animate-fade-up-delay-2">
-            Расскажите ИИ-юристу о ситуации. Получите алгоритм действий и готовые документы.
+            Опишите, что случилось. Мы разберём ситуацию, подскажем первые шаги и поможем передать дело профильному юристу.
           </p>
 
           {/* CTA */}
@@ -52,7 +52,7 @@ const LandingScreen = ({ onStartChat }: LandingScreenProps) => {
               onClick={() => onStartChat()}
             >
               <Sparkles className="h-4 w-4" />
-              Начать консультацию бесплатно
+              Разобрать ситуацию бесплатно
             </Button>
           </div>
 

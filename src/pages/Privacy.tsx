@@ -15,7 +15,7 @@ const Privacy = () => {
       </header>
 
       <main className="px-5 py-6 space-y-5 text-sm leading-relaxed text-foreground">
-        <h1 className="text-xl font-bold">Политика конфиденциальности LexTriage</h1>
+        <h1 className="text-xl font-bold">Политика конфиденциальности LexAdvice</h1>
         <p className="text-muted-foreground text-xs">Версия v1.0</p>
 
         <section className="space-y-2">
@@ -46,14 +46,14 @@ const Privacy = () => {
         <section className="space-y-2">
           <h2 className="text-base font-semibold">4. Право на удаление</h2>
           <p className="text-muted-foreground">
-            Вы можете в любой момент запросить удаление ваших данных, написав на support@lextriage.app.
+            Вы можете в любой момент запросить удаление ваших данных, написав на support@lexadvice.app.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-base font-semibold">5. Ограничения ИИ</h2>
           <p className="text-muted-foreground">
-            LexTriage предоставляет базовые информационные рекомендации и
+            LexAdvice предоставляет базовые информационные рекомендации и
             <span className="font-medium text-foreground"> не заменяет очную консультацию адвоката</span>.
             Для принятия юридически значимых решений обратитесь к профильному специалисту.
           </p>
