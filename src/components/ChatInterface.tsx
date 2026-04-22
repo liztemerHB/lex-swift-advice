@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, SendHorizontal, Scale } from "lucide-react";
+import { ArrowLeft, SendHorizontal, Scale, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Message {
@@ -35,6 +35,7 @@ const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProp
   const [isTyping, setIsTyping] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [chatComplete, setChatComplete] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const currentIdx = useRef(0);
 
@@ -123,15 +124,29 @@ const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProp
 
       {/* Input */}
       <div className="border-t border-border px-4 py-3">
-        <div className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-2">
+        <div className="flex items-center gap-2 rounded-xl bg-secondary px-3 py-2">
           <input
             type="text"
             placeholder="Опишите проблему..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
+            className="flex-1 bg-transparent px-1 text-sm text-foreground placeholder:text-muted-foreground outline-none"
           />
-          <button className="text-primary hover:text-primary/80 transition-colors">
+          <button
+            onClick={() => setIsRecording((r) => !r)}
+            aria-label={isRecording ? "Остановить запись" : "Записать голосом"}
+            className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-all ${
+              isRecording
+                ? "bg-primary text-primary-foreground shadow-button animate-pulse"
+                : "text-muted-foreground hover:text-primary hover:bg-background"
+            }`}
+          >
+            <Mic className="h-4 w-4" />
+            {isRecording && (
+              <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
+            )}
+          </button>
+          <button className="flex h-9 w-9 items-center justify-center rounded-full text-primary hover:bg-background transition-colors">
             <SendHorizontal className="h-5 w-5" />
           </button>
         </div>
