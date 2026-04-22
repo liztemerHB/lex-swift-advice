@@ -59,15 +59,16 @@ Deno.serve(async (req) => {
       .single();
     if (leadErr) throw leadErr;
 
-    await admin.from("lead_contacts").insert({
+    const { error: contactErr } = await admin.from("lead_contacts").insert({
       lead_id: lead.id,
       contact: contact.trim(),
       consent_personal_data: true,
       consent_transfer_to_lawyer: true,
       privacy_policy_accepted: true,
     });
+    if (contactErr) throw contactErr;
 
-    // Notify n8n if configured
+    // Notify n8n if configured (optional)
     const n8n = Deno.env.get("N8N_WEBHOOK_URL");
     if (n8n) {
       try {
@@ -81,7 +82,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ ok: true, leadId: lead.id }), {
+    return new Response(JSON.stringify({ success: true, leadId: lead.id }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {

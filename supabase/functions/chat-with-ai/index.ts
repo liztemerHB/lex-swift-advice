@@ -6,185 +6,142 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `Ты — ИИ-ассистент LexTriage по российскому праву. Задавай уточняющие вопросы (по одному за раз), чтобы понять ситуацию пользователя: что произошло, когда, какие документы есть, сумма ущерба, город. После сбора достаточной информации (обычно 3-5 уточнений) — сформируй итоговое досье.
-
-Отвечай кратко, по-человечески, на русском. Не давай юридических заключений как у адвоката — только базовые информационные рекомендации.
-
-Когда информации достаточно для базовых рекомендаций — верни итог в формате tool call set_case_summary.`;
-
-const tools = [
-  {
-    type: "function",
-    function: {
-      name: "set_case_summary",
-      description:
-        "Завершает сбор фактов и сохраняет структурированное досье по делу.",
-      parameters: {
-        type: "object",
-        properties: {
-          category: {
-            type: "string",
-            description: "Категория: ДТП, Развод, Залив, Трудовой спор, Прочее",
-          },
-          urgency: { type: "string", enum: ["low", "medium", "high"] },
-          problem_summary: { type: "string" },
-          facts: {
-            type: "object",
-            description: "Ключевые факты: даты, суммы, документы, стороны.",
-          },
-          next_steps: {
-            type: "array",
-            items: { type: "string" },
-            description: "3-5 базовых шагов для пользователя.",
-          },
-          estimated_damage: { type: "number" },
-          city: { type: "string" },
-        },
-        required: ["category", "urgency", "problem_summary", "next_steps"],
-      },
-    },
-  },
-];
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { message, caseId } = await req.json();
+    const body = await req.json();
+    const message: string = body?.message ?? "";
+    let caseId: string | undefined = body?.caseId;
+    const consentPersonalData: boolean = !!body?.consentPersonalData;
+    const privacyPolicyAccepted: boolean = !!body?.privacyPolicyAccepted;
+
     if (!message || typeof message !== "string") {
-      return new Response(JSON.stringify({ error: "message required" }), {
+      return new Response(JSON.stringify({ error: "message is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
 
-    const authHeader = req.headers.get("Authorization");
     let userId: string | null = null;
+    const authHeader = req.headers.get("Authorization");
     if (authHeader) {
-      const userClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY")!, {
-        global: { headers: { Authorization: authHeader } },
-      });
+      const userClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } }
+      );
       const { data: { user } } = await userClient.auth.getUser();
       userId = user?.id ?? null;
     }
 
-    const admin = createClient(SUPABASE_URL, SERVICE_KEY);
-
-    // Get or create case
-    let currentCaseId = caseId as string | undefined;
-    if (!currentCaseId) {
-      const { data: created, error: createErr } = await admin
+    if (!caseId) {
+      const { data: newCase, error: caseErr } = await admin
         .from("cases")
-        .insert({ user_id: userId })
-        .select("id")
+        .insert({
+          user_id: userId,
+          consent_personal_data: consentPersonalData,
+          privacy_policy_accepted: privacyPolicyAccepted,
+          consent_at: consentPersonalData ? new Date().toISOString() : null,
+          consent_version: consentPersonalData ? "v1.0" : null,
+        })
+        .select()
         .single();
-      if (createErr) throw createErr;
-      currentCaseId = created.id;
+      if (caseErr) throw caseErr;
+      caseId = newCase.id;
     }
 
-    // Save user message
-    await admin
-      .from("case_messages")
-      .insert({ case_id: currentCaseId, role: "user", content: message });
+    await admin.from("case_messages").insert({
+      case_id: caseId,
+      role: "user",
+      content: message,
+    });
 
-    // Load history
     const { data: history } = await admin
       .from("case_messages")
-      .select("role, content")
-      .eq("case_id", currentCaseId)
-      .order("created_at", { ascending: true });
+      .select("role, content, created_at")
+      .eq("case_id", caseId)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    const recentHistory = (history ?? []).reverse();
 
-    const messages = [
-      { role: "system", content: SYSTEM_PROMPT },
-      ...(history ?? []).map((m) => ({ role: m.role, content: m.content })),
-    ];
+    const { data: currentCase } = await admin
+      .from("cases")
+      .select("*")
+      .eq("id", caseId)
+      .single();
 
-    // Call Lovable AI Gateway
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const n8nUrl = Deno.env.get("N8N_WEBHOOK_URL");
+    if (!n8nUrl) {
+      return new Response(
+        JSON.stringify({ error: "N8N_WEBHOOK_URL is not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const n8nResp = await fetch(n8nUrl, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages,
-        tools,
+        message,
+        caseId,
+        history: recentHistory,
+        currentFacts: currentCase?.facts ?? {},
       }),
     });
 
-    if (!aiRes.ok) {
-      const text = await aiRes.text();
-      console.error("AI error", aiRes.status, text);
-      if (aiRes.status === 429) {
-        return new Response(JSON.stringify({ error: "Превышен лимит запросов. Попробуйте позже." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (aiRes.status === 402) {
-        return new Response(JSON.stringify({ error: "Закончились AI-кредиты." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      throw new Error("AI gateway failed");
+    if (!n8nResp.ok) {
+      const txt = await n8nResp.text();
+      console.error("n8n error", n8nResp.status, txt);
+      return new Response(
+        JSON.stringify({ error: "Ошибка ИИ-сервиса", details: txt }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    const aiJson = await aiRes.json();
-    const choice = aiJson.choices?.[0]?.message;
-    let reply: string = choice?.content ?? "";
-    let isComplete = false;
-    let caseSummary: any = null;
+    const n8nData = await n8nResp.json();
+    const reply: string = n8nData?.reply ?? "";
+    const isComplete: boolean = !!n8nData?.is_fact_gathering_complete;
+    const patch = n8nData?.case_patch ?? {};
+    const nextSteps: string[] = Array.isArray(n8nData?.next_steps) ? n8nData.next_steps : [];
 
-    const toolCall = choice?.tool_calls?.[0];
-    if (toolCall?.function?.name === "set_case_summary") {
-      try {
-        caseSummary = JSON.parse(toolCall.function.arguments);
-        isComplete = true;
-        if (!reply) {
-          reply = "Я собрал достаточно информации. Подготовил для вас алгоритм действий — посмотрите план.";
-        }
-
-        await admin
-          .from("cases")
-          .update({
-            category: caseSummary.category ?? null,
-            urgency: caseSummary.urgency ?? null,
-            problem_summary: caseSummary.problem_summary ?? null,
-            facts: caseSummary.facts ?? {},
-            next_steps: caseSummary.next_steps ?? [],
-            estimated_damage: caseSummary.estimated_damage ?? null,
-            city: caseSummary.city ?? null,
-            is_fact_gathering_complete: true,
-          })
-          .eq("id", currentCaseId);
-      } catch (e) {
-        console.error("Failed to parse tool call", e);
-      }
+    if (reply) {
+      await admin.from("case_messages").insert({
+        case_id: caseId,
+        role: "assistant",
+        content: reply,
+      });
     }
 
-    // Save assistant reply
-    await admin
-      .from("case_messages")
-      .insert({ case_id: currentCaseId, role: "assistant", content: reply });
+    const update: Record<string, unknown> = {
+      is_fact_gathering_complete: isComplete,
+      next_steps: nextSteps,
+    };
+    if (patch.category !== undefined) update.category = patch.category;
+    if (patch.urgency !== undefined) update.urgency = patch.urgency;
+    if (patch.problem_summary !== undefined) update.problem_summary = patch.problem_summary;
+    if (patch.extracted_facts !== undefined) update.facts = patch.extracted_facts;
+    if (patch.estimated_damage !== undefined) update.estimated_damage = patch.estimated_damage;
+    if (patch.city !== undefined) update.city = patch.city;
 
-    const { data: caseRow } = await admin
+    const { data: updatedCase } = await admin
       .from("cases")
-      .select("*")
-      .eq("id", currentCaseId)
+      .update(update)
+      .eq("id", caseId)
+      .select()
       .single();
 
     return new Response(
       JSON.stringify({
-        caseId: currentCaseId,
+        caseId,
         reply,
-        is_fact_gathering_complete: isComplete || caseRow?.is_fact_gathering_complete === true,
-        case: caseRow,
+        is_fact_gathering_complete: isComplete,
+        case: updatedCase,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

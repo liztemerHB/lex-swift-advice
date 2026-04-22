@@ -41,27 +41,18 @@ export const useChat = () => {
 
       try {
         const { data, error: fnErr } = await supabase.functions.invoke("chat-with-ai", {
-          body: { message: text, caseId },
+          body: {
+            message: text,
+            caseId,
+            consentPersonalData: consent?.personalData ?? true,
+            privacyPolicyAccepted: consent?.privacyPolicy ?? true,
+          },
         });
         if (fnErr) throw fnErr;
         if (data?.error) throw new Error(data.error);
 
         const newCaseId = data.caseId as string;
         setCaseId(newCaseId);
-
-        // Save consent on first message
-        if (consent && consent.personalData && consent.privacyPolicy) {
-          await supabase
-            .from("cases")
-            .update({
-              consent_personal_data: true,
-              privacy_policy_accepted: true,
-              consent_at: new Date().toISOString(),
-              consent_version: "v1.0",
-            })
-            .eq("id", newCaseId);
-        }
-
         setCaseData(data.case);
         const aiMsg: ChatMessage = {
           id: `a-${Date.now()}`,
