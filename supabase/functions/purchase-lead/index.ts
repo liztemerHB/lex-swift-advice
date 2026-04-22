@@ -35,7 +35,6 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
-    // Verify lawyer role
     const { data: roleRow } = await admin
       .from("user_roles")
       .select("role")
@@ -69,7 +68,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check if already purchased by this lawyer
     const { data: existing } = await admin
       .from("lead_purchases")
       .select("id")
@@ -85,7 +83,7 @@ Deno.serve(async (req) => {
       });
       if (purchaseErr) throw purchaseErr;
 
-      await admin.from("leads").update({ status: "sold" }).eq("id", leadId);
+      await admin.from("leads").update({ status: "purchased" }).eq("id", leadId);
     }
 
     const { data: contactRow } = await admin
@@ -94,8 +92,18 @@ Deno.serve(async (req) => {
       .eq("lead_id", leadId)
       .maybeSingle();
 
+    const { data: updatedLead } = await admin
+      .from("leads")
+      .select("*")
+      .eq("id", leadId)
+      .single();
+
     return new Response(
-      JSON.stringify({ ok: true, contact: contactRow?.contact ?? null, price_rub: lead.price_rub }),
+      JSON.stringify({
+        success: true,
+        contact: contactRow?.contact ?? null,
+        lead: updatedLead,
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
