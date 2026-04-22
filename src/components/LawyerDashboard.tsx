@@ -106,7 +106,7 @@ const LawyerDashboard = () => {
                   </div>
 
                   {contact ? (
-                    <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                    <div className="flex items-center gap-2 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
                       <Phone className="h-4 w-4" />
                       <span className="font-medium">{contact}</span>
                     </div>
