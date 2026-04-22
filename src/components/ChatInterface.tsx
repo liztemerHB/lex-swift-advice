@@ -54,7 +54,7 @@ const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProp
 
   const QUICK_CATEGORIES = ["ДТП", "Залив квартиры", "Развод", "Потребительский спор", "Трудовой спор", "Другое"];
   const WELCOME_TEXT =
-    "Здравствуйте. Опишите вашу юридическую проблему простыми словами: что случилось, когда, где и кто участвует. Я помогу понять срочность, собрать факты и подготовить план действий.";
+    "Здравствуйте. Опишите ситуацию простыми словами: что случилось, когда, где и кто участвует. Я помогу оценить срочность, собрать важные факты и подготовить понятный план действий.";
 
   const isComplete = caseData?.is_fact_gathering_complete === true;
 
@@ -69,7 +69,7 @@ const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProp
             <Scale className="h-4 w-4 text-primary-foreground" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground">LexTriage AI</p>
+            <p className="text-sm font-semibold text-foreground">LexAdvice AI</p>
             <p className="text-xs text-muted-foreground">{isTyping ? "Печатает…" : "Онлайн"}</p>
           </div>
         </div>
@@ -81,7 +81,7 @@ const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProp
             <div className="max-w-[85%] rounded-2xl rounded-bl-md surface-chat-ai px-4 py-2.5 text-sm leading-relaxed text-foreground">
               {consented
                 ? WELCOME_TEXT
-                : "Здравствуйте! Я ИИ-помощник LexTriage. Подтвердите согласие, чтобы начать."}
+                : "Здравствуйте! Я ИИ-помощник LexAdvice. Подтвердите согласие, чтобы начать."}
             </div>
           </div>
         )}
