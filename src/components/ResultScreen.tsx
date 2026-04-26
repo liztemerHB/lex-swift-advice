@@ -10,9 +10,30 @@ import { toast } from "sonner";
 
 interface ResultScreenProps {
   onBack: () => void;
-  onLawyerDashboard: () => void;
   caseId: string;
 }
+
+const FACT_LABELS: Record<string, string> = {
+  affected_items: "Что пострадало",
+  source_of_leak: "Источник протечки",
+  time_since_leak_discovery: "Когда обнаружено",
+  presence_at_home_during_leak: "Были ли дома",
+  damage_description: "Описание ущерба",
+  estimated_damage: "Оценка ущерба",
+  city: "Город",
+  address: "Адрес",
+  date: "Дата происшествия",
+  parties: "Стороны",
+  documents: "Документы",
+  witnesses: "Свидетели",
+};
+
+const humanizeFactKey = (key: string) => {
+  const lower = key.toLowerCase();
+  if (FACT_LABELS[lower]) return FACT_LABELS[lower];
+  const spaced = key.replace(/[_-]+/g, " ").trim();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase();
+};
 
 interface CaseRow {
   id: string;
@@ -34,7 +55,7 @@ const urgencyLabel = (u: string | null) => {
   return { label: "—", color: "text-muted-foreground bg-muted" };
 };
 
-const ResultScreen = ({ onBack, onLawyerDashboard, caseId }: ResultScreenProps) => {
+const ResultScreen = ({ onBack, caseId }: ResultScreenProps) => {
   const [caseRow, setCaseRow] = useState<CaseRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -142,7 +163,7 @@ const ResultScreen = ({ onBack, onLawyerDashboard, caseId }: ResultScreenProps) 
             <dl className="space-y-2 text-sm">
               {factEntries.map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-3">
-                  <dt className="text-muted-foreground capitalize">{k}</dt>
+                  <dt className="text-muted-foreground">{humanizeFactKey(k)}</dt>
                   <dd className="font-medium text-foreground text-right">{String(v)}</dd>
                 </div>
               ))}
@@ -206,14 +227,6 @@ const ResultScreen = ({ onBack, onLawyerDashboard, caseId }: ResultScreenProps) 
           </Button>
         </div>
 
-        <div className="pb-6 text-center opacity-0 animate-fade-up-delay-4">
-          <button
-            onClick={onLawyerDashboard}
-            className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
-          >
-            Панель юриста (B2B) →
-          </button>
-        </div>
       </div>
 
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>

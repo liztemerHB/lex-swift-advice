@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Scale, Loader2, Send, ArrowLeft } from "lucide-react";
+import { Scale, Loader2, Send, ArrowLeft, Briefcase } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,7 +42,8 @@ const AuthPage = () => {
   useEffect(() => {
     if (!authLoading && user) {
       clearTelegramPolling(false);
-      navigate(role === "admin" ? "/admin" : "/", { replace: true });
+      const dest = role === "admin" ? "/admin" : role === "lawyer" ? "/lawyer" : "/";
+      navigate(dest, { replace: true });
     }
   }, [user, role, authLoading, navigate]);
 
@@ -290,6 +292,19 @@ const AuthPage = () => {
             Отменить ожидание
           </Button>
         )}
+
+        <div className="mt-8 rounded-xl border border-border bg-secondary/40 p-4">
+          <div className="flex items-center gap-2 mb-1.5">
+            <Briefcase className="h-4 w-4 text-primary" />
+            <p className="text-sm font-semibold text-foreground">Вы юрист?</p>
+          </div>
+          <p className="mb-3 text-xs text-muted-foreground leading-relaxed">
+            Отдельный вход в B2B-кабинет для работы с заявками клиентов.
+          </p>
+          <Button asChild variant="outline" size="sm" className="w-full rounded-lg">
+            <Link to="/lawyer-auth">Войти как юрист</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import LandingScreen from "@/components/LandingScreen";
 import ChatInterface from "@/components/ChatInterface";
 import ResultScreen from "@/components/ResultScreen";
@@ -7,7 +6,6 @@ import ResultScreen from "@/components/ResultScreen";
 type View = "landing" | "chat" | "result";
 
 const Index = () => {
-  const navigate = useNavigate();
   const [view, setView] = useState<View>("landing");
   const [chatTopic, setChatTopic] = useState<string | undefined>();
   const [activeCaseId, setActiveCaseId] = useState<string | null>(null);
@@ -34,7 +32,6 @@ const Index = () => {
         <ResultScreen
           caseId={activeCaseId}
           onBack={() => setView("chat")}
-          onLawyerDashboard={() => navigate("/lawyer")}
         />
       )}
     </div>
