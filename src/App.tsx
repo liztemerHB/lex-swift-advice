@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/Auth";
 import LawyerAuth from "./pages/LawyerAuth";
 import Privacy from "./pages/Privacy";
+import Account from "./pages/Account";
 import LawyerDashboard from "./components/LawyerDashboard";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Overview from "./pages/admin/Overview";
@@ -30,6 +31,14 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/lawyer-auth" element={<LawyerAuth />} />
+            <Route
+              path="/account"
+              element={
+                <ProtectedRoute>
+                  <Account />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/" element={<Index />} />
             <Route
               path="/lawyer"
