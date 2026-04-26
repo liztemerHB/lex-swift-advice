@@ -1,4 +1,5 @@
 import { Sparkles, Shield, Scale } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const CHIPS = [
@@ -21,6 +22,14 @@ const LandingScreen = ({ onStartChat }: LandingScreenProps) => {
           <Scale className="h-6 w-6 text-primary" />
           <span className="text-lg font-bold tracking-tight text-foreground">LexAdvice</span>
         </div>
+        <nav className="flex items-center gap-1.5">
+          <Button asChild variant="ghost" size="sm" className="h-9 rounded-lg px-3 text-sm">
+            <Link to="/auth?tab=signin">Войти</Link>
+          </Button>
+          <Button asChild variant="hero" size="sm" className="h-9 rounded-lg px-3 text-sm">
+            <Link to="/auth?tab=signup">Регистрация</Link>
+          </Button>
+        </nav>
       </header>
 
       {/* Hero */}
