@@ -56,7 +56,7 @@ const urgencyLabel = (u: string | null) => {
   return { label: "—", color: "text-muted-foreground bg-muted" };
 };
 
-const ResultScreen = ({ onBack, caseId }: ResultScreenProps) => {
+const ResultScreen = ({ onBack, onHome, caseId }: ResultScreenProps) => {
   const [caseRow, setCaseRow] = useState<CaseRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
