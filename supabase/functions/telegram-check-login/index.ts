@@ -5,47 +5,51 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const json = (body: Record<string, unknown>, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
     const { token } = await req.json();
     if (!token || typeof token !== "string") {
-      return new Response(JSON.stringify({ error: "token required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ error: "token required" }, 400);
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceKey) {
+      console.error("telegram-check-login missing backend credentials");
+      return json({ error: "SERVICE_UNAVAILABLE", fallback: true });
     }
 
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      supabaseUrl,
+      serviceKey,
     );
 
     const { data, error } = await supabase
       .from("telegram_login_tokens")
-      .select("*")
+      .select("status, expires_at, access_token, refresh_token")
       .eq("token", token)
       .maybeSingle();
 
     if (error) throw error;
     if (!data) {
-      return new Response(JSON.stringify({ status: "not_found" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ status: "not_found" });
     }
 
     if (new Date(data.expires_at).getTime() < Date.now() && data.status === "pending") {
       await supabase.from("telegram_login_tokens").update({ status: "expired" }).eq("token", token);
-      return new Response(JSON.stringify({ status: "expired" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ status: "expired" });
     }
 
     if (data.status !== "confirmed") {
-      return new Response(JSON.stringify({ status: data.status }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ status: data.status });
     }
 
     // Confirmed: return session tokens once, then mark as used
@@ -53,10 +57,7 @@ Deno.serve(async (req) => {
     const refresh_token = data.refresh_token;
 
     if (!access_token || !refresh_token) {
-      return new Response(JSON.stringify({ status: "error", message: "missing session" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ status: "used" });
     }
 
     await supabase
@@ -64,15 +65,9 @@ Deno.serve(async (req) => {
       .update({ status: "used", access_token: null, refresh_token: null })
       .eq("token", token);
 
-    return new Response(
-      JSON.stringify({ status: "confirmed", access_token, refresh_token }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return json({ status: "confirmed", access_token, refresh_token });
   } catch (e) {
     console.error("telegram-check-login error:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "unknown" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return json({ error: "SERVICE_UNAVAILABLE", fallback: true });
   }
 });
