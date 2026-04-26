@@ -42,7 +42,8 @@ const AuthPage = () => {
   useEffect(() => {
     if (!authLoading && user) {
       clearTelegramPolling(false);
-      navigate(role === "admin" ? "/admin" : "/", { replace: true });
+      const dest = role === "admin" ? "/admin" : role === "lawyer" ? "/lawyer" : "/";
+      navigate(dest, { replace: true });
     }
   }, [user, role, authLoading, navigate]);
 
