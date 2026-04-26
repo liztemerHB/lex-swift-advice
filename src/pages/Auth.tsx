@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Scale, Loader2, Send } from "lucide-react";
+import { Scale, Loader2, Send, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -115,9 +115,25 @@ const AuthPage = () => {
     }
   };
 
+  const handleBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate("/");
+  };
+
+  const cancelTelegram = () => {
+    setTgWaiting(false);
+    setTgLoading(false);
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
+        <div className="mb-4 flex justify-start">
+          <Button variant="ghost" size="sm" onClick={handleBack} className="-ml-2 h-9 px-2 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-4 w-4" />
+            Назад
+          </Button>
+        </div>
         <div className="mb-8 flex flex-col items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-button">
             <Scale className="h-6 w-6 text-primary-foreground" />
@@ -199,6 +215,17 @@ const AuthPage = () => {
         <p className="mt-2 text-center text-xs text-muted-foreground">
           Откроется бот @LexAdvice_bot. Нажмите Start — мы войдём автоматически.
         </p>
+        {tgWaiting && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="mt-2 w-full text-xs text-muted-foreground"
+            onClick={cancelTelegram}
+          >
+            Отменить ожидание
+          </Button>
+        )}
       </div>
     </div>
   );
