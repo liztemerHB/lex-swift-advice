@@ -163,7 +163,7 @@ const ResultScreen = ({ onBack, caseId }: ResultScreenProps) => {
             <dl className="space-y-2 text-sm">
               {factEntries.map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-3">
-                  <dt className="text-muted-foreground capitalize">{k}</dt>
+                  <dt className="text-muted-foreground">{humanizeFactKey(k)}</dt>
                   <dd className="font-medium text-foreground text-right">{String(v)}</dd>
                 </div>
               ))}
