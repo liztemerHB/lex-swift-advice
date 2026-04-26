@@ -88,6 +88,7 @@ const AuthPage = () => {
     try {
       const { data: activeSession } = await supabase.auth.getSession();
       if (activeSession.session) {
+        setTgLoading(false);
         navigate("/", { replace: true });
         return;
       }
