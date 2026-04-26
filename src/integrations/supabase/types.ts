@@ -244,6 +244,114 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_bot_state: {
+        Row: {
+          id: number
+          update_offset: number
+          updated_at: string
+        }
+        Insert: {
+          id: number
+          update_offset?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          update_offset?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      telegram_links: {
+        Row: {
+          chat_id: number
+          created_at: string
+          id: string
+          telegram_username: string | null
+          user_id: string
+        }
+        Insert: {
+          chat_id: number
+          created_at?: string
+          id?: string
+          telegram_username?: string | null
+          user_id: string
+        }
+        Update: {
+          chat_id?: number
+          created_at?: string
+          id?: string
+          telegram_username?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      telegram_login_tokens: {
+        Row: {
+          access_token: string | null
+          chat_id: number | null
+          created_at: string
+          expires_at: string
+          id: string
+          refresh_token: string | null
+          status: string
+          telegram_username: string | null
+          token: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          chat_id?: number | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          refresh_token?: string | null
+          status?: string
+          telegram_username?: string | null
+          token: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          chat_id?: number | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          refresh_token?: string | null
+          status?: string
+          telegram_username?: string | null
+          token?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      telegram_messages: {
+        Row: {
+          chat_id: number
+          created_at: string
+          raw_update: Json
+          text: string | null
+          update_id: number
+        }
+        Insert: {
+          chat_id: number
+          created_at?: string
+          raw_update: Json
+          text?: string | null
+          update_id: number
+        }
+        Update: {
+          chat_id?: number
+          created_at?: string
+          raw_update?: Json
+          text?: string | null
+          update_id?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

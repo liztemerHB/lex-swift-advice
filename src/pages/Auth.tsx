@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Scale, Loader2 } from "lucide-react";
+import { Scale, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,8 @@ const AuthPage = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [tgLoading, setTgLoading] = useState(false);
+  const [tgWaiting, setTgWaiting] = useState(false);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -57,6 +59,62 @@ const AuthPage = () => {
     toast.success("Аккаунт создан. Вы вошли в систему.");
   };
 
+  const handleTelegramLogin = async () => {
+    setTgLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("telegram-start-login");
+      if (error || !data?.deeplink || !data?.token) {
+        toast.error("Не удалось начать вход через Telegram");
+        setTgLoading(false);
+        return;
+      }
+      window.open(data.deeplink, "_blank", "noopener");
+      setTgWaiting(true);
+      const token: string = data.token;
+      const started = Date.now();
+      const tick = async () => {
+        if (Date.now() - started > 10 * 60 * 1000) {
+          setTgWaiting(false);
+          setTgLoading(false);
+          toast.error("Время ожидания истекло. Попробуйте снова.");
+          return;
+        }
+        try {
+          const { data: st } = await supabase.functions.invoke("telegram-check-login", {
+            body: { token },
+          });
+          if (st?.status === "confirmed" && st.access_token && st.refresh_token) {
+            const { error: setErr } = await supabase.auth.setSession({
+              access_token: st.access_token,
+              refresh_token: st.refresh_token,
+            });
+            if (setErr) {
+              toast.error(setErr.message);
+            } else {
+              toast.success("Вход через Telegram выполнен");
+            }
+            setTgWaiting(false);
+            setTgLoading(false);
+            return;
+          }
+          if (st?.status === "expired") {
+            setTgWaiting(false);
+            setTgLoading(false);
+            toast.error("Ссылка истекла. Попробуйте снова.");
+            return;
+          }
+        } catch (e) {
+          console.error("tg poll error:", e);
+        }
+        setTimeout(tick, 2500);
+      };
+      setTimeout(tick, 2500);
+    } catch (e) {
+      console.error(e);
+      setTgLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
@@ -65,7 +123,7 @@ const AuthPage = () => {
             <Scale className="h-6 w-6 text-primary-foreground" />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">LexTriage</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">LexAdvice</h1>
             <p className="mt-1 text-sm text-muted-foreground">ИИ-помощник для юридических вопросов</p>
           </div>
         </div>
@@ -115,6 +173,32 @@ const AuthPage = () => {
             </form>
           </TabsContent>
         </Tabs>
+
+        <div className="mt-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs text-muted-foreground">или</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-4 w-full"
+          onClick={handleTelegramLogin}
+          disabled={tgLoading}
+        >
+          {tgLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <Send className="h-4 w-4" />
+              {tgWaiting ? "Ожидаем подтверждения в Telegram…" : "Войти через Telegram"}
+            </>
+          )}
+        </Button>
+        <p className="mt-2 text-center text-xs text-muted-foreground">
+          Откроется бот @LexAdvice_bot. Нажмите Start — мы войдём автоматически.
+        </p>
       </div>
     </div>
   );
