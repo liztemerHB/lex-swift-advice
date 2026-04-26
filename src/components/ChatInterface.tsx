@@ -7,6 +7,7 @@ import ConsentSheet from "@/components/ConsentSheet";
 
 interface ChatInterfaceProps {
   onBack: () => void;
+  onHome?: () => void;
   onShowResult: (caseId: string) => void;
   initialTopic?: string;
 }
