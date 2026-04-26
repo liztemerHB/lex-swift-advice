@@ -1,6 +1,7 @@
-import { Sparkles, Shield, Scale } from "lucide-react";
+import { Sparkles, Shield, Scale, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const CHIPS = [
   { emoji: "🚗", label: "ДТП" },
@@ -14,6 +15,12 @@ interface LandingScreenProps {
 }
 
 const LandingScreen = ({ onStartChat }: LandingScreenProps) => {
+  const { user, signOut } = useAuth();
+  const displayName =
+    (user?.user_metadata as { full_name?: string } | undefined)?.full_name ||
+    user?.email ||
+    "";
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
@@ -22,14 +29,31 @@ const LandingScreen = ({ onStartChat }: LandingScreenProps) => {
           <Scale className="h-6 w-6 text-primary" />
           <span className="text-lg font-bold tracking-tight text-foreground">LexAdvice</span>
         </div>
-        <nav className="flex items-center gap-1.5">
-          <Button asChild variant="ghost" size="sm" className="h-9 rounded-lg px-3 text-sm">
-            <Link to="/auth?tab=signin">Войти</Link>
-          </Button>
-          <Button asChild variant="hero" size="sm" className="h-9 rounded-lg px-3 text-sm">
-            <Link to="/auth?tab=signup">Регистрация</Link>
-          </Button>
-        </nav>
+        {user ? (
+          <nav className="flex items-center gap-2">
+            <span className="hidden max-w-[160px] truncate text-xs text-muted-foreground sm:inline">
+              {displayName}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 rounded-lg px-3 text-sm"
+              onClick={signOut}
+            >
+              <LogOut className="h-4 w-4" />
+              Выйти
+            </Button>
+          </nav>
+        ) : (
+          <nav className="flex items-center gap-1.5">
+            <Button asChild variant="ghost" size="sm" className="h-9 rounded-lg px-3 text-sm">
+              <Link to="/auth?tab=signin">Войти</Link>
+            </Button>
+            <Button asChild variant="hero" size="sm" className="h-9 rounded-lg px-3 text-sm">
+              <Link to="/auth?tab=signup">Регистрация</Link>
+            </Button>
+          </nav>
+        )}
       </header>
 
       {/* Hero */}
