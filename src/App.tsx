@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/Auth";
+import LawyerAuth from "./pages/LawyerAuth";
 import Privacy from "./pages/Privacy";
 import LawyerDashboard from "./components/LawyerDashboard";
 import AdminLayout from "./pages/admin/AdminLayout";
