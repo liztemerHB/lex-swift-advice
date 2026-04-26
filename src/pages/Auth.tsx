@@ -79,6 +79,13 @@ const AuthPage = () => {
           toast.error("Время ожидания истекло. Попробуйте снова.");
           return;
         }
+        // If session already exists (e.g. confirmed in a previous tick), stop polling.
+        const { data: sess } = await supabase.auth.getSession();
+        if (sess.session) {
+          setTgWaiting(false);
+          setTgLoading(false);
+          return;
+        }
         try {
           const { data: st } = await supabase.functions.invoke("telegram-check-login", {
             body: { token },
@@ -88,25 +95,22 @@ const AuthPage = () => {
               access_token: st.access_token,
               refresh_token: st.refresh_token,
             });
-            if (setErr) {
-              toast.error(setErr.message);
-            } else {
-              toast.success("Вход через Telegram выполнен");
-            }
+            if (setErr) toast.error(setErr.message);
+            else toast.success("Вход через Telegram выполнен");
             setTgWaiting(false);
             setTgLoading(false);
             return;
           }
-          if (st?.status === "expired") {
+          if (st?.status === "expired" || st?.status === "used" || st?.status === "not_found") {
             setTgWaiting(false);
             setTgLoading(false);
-            toast.error("Ссылка истекла. Попробуйте снова.");
+            if (st.status === "expired") toast.error("Ссылка истекла. Попробуйте снова.");
             return;
           }
         } catch (e) {
           console.error("tg poll error:", e);
         }
-        setTimeout(tick, 2500);
+        setTimeout(tick, 3000);
       };
       setTimeout(tick, 2500);
     } catch (e) {
