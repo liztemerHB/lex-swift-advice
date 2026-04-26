@@ -21,7 +21,6 @@ const AuthPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [tgLoading, setTgLoading] = useState(false);
   const [tgWaiting, setTgWaiting] = useState(false);
-  const tgPollRef = useState<{ token?: string; timer?: number }>({})[0];
 
   useEffect(() => {
     if (!authLoading && user) {
