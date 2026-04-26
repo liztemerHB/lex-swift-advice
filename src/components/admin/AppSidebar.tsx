@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, FolderOpen, Scale } from "lucide-react";
+import { LayoutDashboard, Users, FolderOpen, Scale, BarChart3, Wallet, Filter } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -14,6 +14,9 @@ import {
 
 const items = [
   { title: "Обзор", url: "/admin", icon: LayoutDashboard, end: true },
+  { title: "Аналитика", url: "/admin/analytics", icon: BarChart3 },
+  { title: "Финансы", url: "/admin/finance", icon: Wallet },
+  { title: "Воронка", url: "/admin/funnel", icon: Filter },
   { title: "Пользователи", url: "/admin/users", icon: Users },
   { title: "Дела", url: "/admin/cases", icon: FolderOpen },
 ];

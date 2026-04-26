@@ -15,6 +15,9 @@ import Overview from "./pages/admin/Overview";
 import Users from "./pages/admin/Users";
 import UserDetail from "./pages/admin/UserDetail";
 import Cases from "./pages/admin/Cases";
+import Analytics from "./pages/admin/Analytics";
+import Finance from "./pages/admin/Finance";
+import Funnel from "./pages/admin/Funnel";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -57,6 +60,9 @@ const App = () => (
               }
             >
               <Route index element={<Overview />} />
+              <Route path="analytics" element={<Analytics />} />
+              <Route path="finance" element={<Finance />} />
+              <Route path="funnel" element={<Funnel />} />
               <Route path="users" element={<Users />} />
               <Route path="users/:id" element={<UserDetail />} />
               <Route path="cases" element={<Cases />} />
