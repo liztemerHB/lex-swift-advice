@@ -227,14 +227,6 @@ const ResultScreen = ({ onBack, caseId }: ResultScreenProps) => {
           </Button>
         </div>
 
-        <div className="pb-6 text-center opacity-0 animate-fade-up-delay-4">
-          <button
-            onClick={onLawyerDashboard}
-            className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
-          >
-            Панель юриста (B2B) →
-          </button>
-        </div>
       </div>
 
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
