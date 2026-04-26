@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, FileText, UserCheck, CheckCircle2, AlertTriangle, Lock, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, FileText, UserCheck, CheckCircle2, AlertTriangle, Lock, Send, Loader2, Scale } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
