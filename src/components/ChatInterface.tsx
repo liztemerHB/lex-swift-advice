@@ -20,7 +20,7 @@ const TypingIndicator = () => (
   </div>
 );
 
-const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProps) => {
+const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInterfaceProps) => {
   const { messages, isTyping, error, caseId, caseData, sendMessage } = useChat();
   const [inputValue, setInputValue] = useState(initialTopic ?? "");
   const [isRecording, setIsRecording] = useState(false);
