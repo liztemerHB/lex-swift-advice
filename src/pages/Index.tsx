@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import LandingScreen from "@/components/LandingScreen";
 import ChatInterface from "@/components/ChatInterface";
 import ResultScreen from "@/components/ResultScreen";
