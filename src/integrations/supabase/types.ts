@@ -103,6 +103,36 @@ export type Database = {
         }
         Relationships: []
       }
+      document_purchases: {
+        Row: {
+          case_id: string | null
+          created_at: string
+          document_type: string
+          id: string
+          price_rub: number
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          case_id?: string | null
+          created_at?: string
+          document_type?: string
+          id?: string
+          price_rub?: number
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          case_id?: string | null
+          created_at?: string
+          document_type?: string
+          id?: string
+          price_rub?: number
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       lead_contacts: {
         Row: {
           consent_personal_data: boolean
@@ -349,6 +379,33 @@ export type Database = {
           raw_update?: Json
           text?: string | null
           update_id?: number
+        }
+        Relationships: []
+      }
+      user_credits: {
+        Row: {
+          balance_rub: number
+          created_at: string
+          credits_remaining: number
+          credits_total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance_rub?: number
+          created_at?: string
+          credits_remaining?: number
+          credits_total?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance_rub?: number
+          created_at?: string
+          credits_remaining?: number
+          credits_total?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
