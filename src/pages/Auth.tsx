@@ -60,6 +60,62 @@ const AuthPage = () => {
     toast.success("Аккаунт создан. Вы вошли в систему.");
   };
 
+  const handleTelegramLogin = async () => {
+    setTgLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("telegram-start-login");
+      if (error || !data?.deeplink || !data?.token) {
+        toast.error("Не удалось начать вход через Telegram");
+        setTgLoading(false);
+        return;
+      }
+      window.open(data.deeplink, "_blank", "noopener");
+      setTgWaiting(true);
+      const token: string = data.token;
+      const started = Date.now();
+      const tick = async () => {
+        if (Date.now() - started > 10 * 60 * 1000) {
+          setTgWaiting(false);
+          setTgLoading(false);
+          toast.error("Время ожидания истекло. Попробуйте снова.");
+          return;
+        }
+        try {
+          const { data: st } = await supabase.functions.invoke("telegram-check-login", {
+            body: { token },
+          });
+          if (st?.status === "confirmed" && st.access_token && st.refresh_token) {
+            const { error: setErr } = await supabase.auth.setSession({
+              access_token: st.access_token,
+              refresh_token: st.refresh_token,
+            });
+            if (setErr) {
+              toast.error(setErr.message);
+            } else {
+              toast.success("Вход через Telegram выполнен");
+            }
+            setTgWaiting(false);
+            setTgLoading(false);
+            return;
+          }
+          if (st?.status === "expired") {
+            setTgWaiting(false);
+            setTgLoading(false);
+            toast.error("Ссылка истекла. Попробуйте снова.");
+            return;
+          }
+        } catch (e) {
+          console.error("tg poll error:", e);
+        }
+        setTimeout(tick, 2500);
+      };
+      setTimeout(tick, 2500);
+    } catch (e) {
+      console.error(e);
+      setTgLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
