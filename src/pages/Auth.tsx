@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Scale, Loader2 } from "lucide-react";
+import { Scale, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,9 @@ const AuthPage = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [tgLoading, setTgLoading] = useState(false);
+  const [tgWaiting, setTgWaiting] = useState(false);
+  const tgPollRef = useState<{ token?: string; timer?: number }>({})[0];
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -65,7 +68,7 @@ const AuthPage = () => {
             <Scale className="h-6 w-6 text-primary-foreground" />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">LexTriage</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">LexAdvice</h1>
             <p className="mt-1 text-sm text-muted-foreground">ИИ-помощник для юридических вопросов</p>
           </div>
         </div>
@@ -115,6 +118,32 @@ const AuthPage = () => {
             </form>
           </TabsContent>
         </Tabs>
+
+        <div className="mt-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs text-muted-foreground">или</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-4 w-full"
+          onClick={handleTelegramLogin}
+          disabled={tgLoading}
+        >
+          {tgLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <Send className="h-4 w-4" />
+              {tgWaiting ? "Ожидаем подтверждения в Telegram…" : "Войти через Telegram"}
+            </>
+          )}
+        </Button>
+        <p className="mt-2 text-center text-xs text-muted-foreground">
+          Откроется бот @LexAdvice_bot. Нажмите Start — мы войдём автоматически.
+        </p>
       </div>
     </div>
   );
