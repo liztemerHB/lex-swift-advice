@@ -1,4 +1,4 @@
-import { Sparkles, Shield, Scale, LogOut } from "lucide-react";
+import { Sparkles, Shield, Scale, LogOut, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,7 +15,7 @@ interface LandingScreenProps {
 }
 
 const LandingScreen = ({ onStartChat }: LandingScreenProps) => {
-  const { user, signOut } = useAuth();
+  const { user, role, signOut } = useAuth();
   const displayName =
     (user?.user_metadata as { full_name?: string } | undefined)?.full_name ||
     user?.email ||
@@ -34,6 +34,14 @@ const LandingScreen = ({ onStartChat }: LandingScreenProps) => {
             <span className="hidden max-w-[160px] truncate text-xs text-muted-foreground sm:inline">
               {displayName}
             </span>
+            {role === "admin" && (
+              <Button asChild variant="outline" size="sm" className="h-9 rounded-lg px-3 text-sm">
+                <Link to="/admin">
+                  <ShieldCheck className="h-4 w-4" />
+                  Админка
+                </Link>
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"

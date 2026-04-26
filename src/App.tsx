@@ -12,6 +12,7 @@ import LawyerDashboard from "./components/LawyerDashboard";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Overview from "./pages/admin/Overview";
 import Users from "./pages/admin/Users";
+import UserDetail from "./pages/admin/UserDetail";
 import Cases from "./pages/admin/Cases";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -48,6 +49,7 @@ const App = () => (
             >
               <Route index element={<Overview />} />
               <Route path="users" element={<Users />} />
+              <Route path="users/:id" element={<UserDetail />} />
               <Route path="cases" element={<Cases />} />
             </Route>
             <Route path="*" element={<NotFound />} />

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users as UsersIcon, Loader2 } from "lucide-react";
+import { Users as UsersIcon, Loader2, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Row = {
@@ -11,6 +12,8 @@ type Row = {
   full_name: string | null;
   created_at: string;
   roles: string[];
+  credits_remaining: number | null;
+  balance_rub: number | null;
 };
 
 const roleVariant = (r: string) =>
@@ -22,12 +25,14 @@ const roleLabel = (r: string) =>
 const Users = () => {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const load = async () => {
-      const [{ data: profiles }, { data: roles }] = await Promise.all([
+      const [{ data: profiles }, { data: roles }, { data: credits }] = await Promise.all([
         supabase.from("profiles").select("id, email, full_name, created_at").order("created_at", { ascending: false }),
         supabase.from("user_roles").select("user_id, role"),
+        supabase.from("user_credits").select("user_id, credits_remaining, balance_rub"),
       ]);
 
       const byUser = new Map<string, string[]>();
@@ -36,6 +41,8 @@ const Users = () => {
         arr.push(r.role);
         byUser.set(r.user_id, arr);
       });
+      const credMap = new Map<string, { credits_remaining: number; balance_rub: number }>();
+      (credits ?? []).forEach((c: any) => credMap.set(c.user_id, c));
 
       setRows(
         (profiles ?? []).map((p: any) => ({
@@ -44,6 +51,8 @@ const Users = () => {
           full_name: p.full_name,
           created_at: p.created_at,
           roles: byUser.get(p.id) ?? [],
+          credits_remaining: credMap.get(p.id)?.credits_remaining ?? null,
+          balance_rub: credMap.get(p.id)?.balance_rub ?? null,
         }))
       );
       setLoading(false);
@@ -55,9 +64,7 @@ const Users = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-foreground">Пользователи</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Всего: {rows.length}
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">Всего: {rows.length} · нажмите на строку для управления</p>
       </div>
 
       <Card className="shadow-card">
@@ -67,19 +74,21 @@ const Users = () => {
               <TableHead>Email</TableHead>
               <TableHead>Имя</TableHead>
               <TableHead>Роли</TableHead>
-              <TableHead>Регистрация</TableHead>
+              <TableHead className="text-right">Кредиты</TableHead>
+              <TableHead className="text-right">Баланс</TableHead>
+              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={4} className="py-16 text-center">
+                <TableCell colSpan={6} className="py-16 text-center">
                   <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
                 </TableCell>
               </TableRow>
             ) : rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="py-16 text-center">
+                <TableCell colSpan={6} className="py-16 text-center">
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
                     <UsersIcon className="h-8 w-8" />
                     <p className="text-sm">Пока нет пользователей</p>
@@ -88,7 +97,11 @@ const Users = () => {
               </TableRow>
             ) : (
               rows.map((u) => (
-                <TableRow key={u.id}>
+                <TableRow
+                  key={u.id}
+                  className="cursor-pointer transition-colors hover:bg-muted/50"
+                  onClick={() => navigate(`/admin/users/${u.id}`)}
+                >
                   <TableCell className="font-mono text-xs">{u.email ?? "—"}</TableCell>
                   <TableCell>{u.full_name || "—"}</TableCell>
                   <TableCell>
@@ -104,8 +117,10 @@ const Users = () => {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {new Date(u.created_at).toLocaleDateString("ru-RU")}
+                  <TableCell className="text-right text-sm">{u.credits_remaining ?? "—"}</TableCell>
+                  <TableCell className="text-right text-sm">{u.balance_rub != null ? `${u.balance_rub} ₽` : "—"}</TableCell>
+                  <TableCell className="w-8 text-right">
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </TableCell>
                 </TableRow>
               ))
