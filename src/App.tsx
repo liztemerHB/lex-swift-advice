@@ -28,6 +28,7 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/lawyer-auth" element={<LawyerAuth />} />
             <Route path="/" element={<Index />} />
             <Route
               path="/lawyer"
