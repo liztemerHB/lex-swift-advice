@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Scale, Briefcase, Loader2, MapPin, Phone, LogOut } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Scale, Briefcase, Loader2, MapPin, Phone, LogOut, UserCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { useLeads } from "@/hooks/useLeads";
@@ -41,9 +42,14 @@ const LawyerDashboard = () => {
           <Scale className="h-5 w-5 text-primary" />
           <p className="text-sm font-semibold text-foreground">Панель юриста</p>
         </div>
-        <button onClick={signOut} className="text-muted-foreground hover:text-foreground">
-          <LogOut className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <Link to="/account" className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" title="Кабинет">
+            <UserCircle2 className="h-4 w-4" />
+          </Link>
+          <button onClick={signOut} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" title="Выйти">
+            <LogOut className="h-4 w-4" />
+          </button>
+        </div>
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 py-5">
