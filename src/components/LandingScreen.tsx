@@ -25,10 +25,10 @@ const LandingScreen = ({ onStartChat }: LandingScreenProps) => {
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
       <header className="flex items-center justify-between px-5 py-4">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <Scale className="h-6 w-6 text-primary" />
           <span className="text-lg font-bold tracking-tight text-foreground">LexAdvice</span>
-        </div>
+        </Link>
         {user ? (
           <nav className="flex items-center gap-2">
             <span className="hidden max-w-[160px] truncate text-xs text-muted-foreground sm:inline">

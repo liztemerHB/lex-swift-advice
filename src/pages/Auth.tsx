@@ -200,7 +200,7 @@ const AuthPage = () => {
             Назад
           </Button>
         </div>
-        <div className="mb-8 flex flex-col items-center gap-3">
+        <Link to="/" className="mb-8 flex flex-col items-center gap-3 hover:opacity-80 transition-opacity">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-button">
             <Scale className="h-6 w-6 text-primary-foreground" />
           </div>
@@ -208,7 +208,7 @@ const AuthPage = () => {
             <h1 className="text-2xl font-bold tracking-tight text-foreground">LexAdvice</h1>
             <p className="mt-1 text-sm text-muted-foreground">ИИ-помощник для юридических вопросов</p>
           </div>
-        </div>
+        </Link>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as "signin" | "signup")}>
           <TabsList className="grid w-full grid-cols-2">

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, FileText, UserCheck, CheckCircle2, AlertTriangle, Lock, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, FileText, UserCheck, CheckCircle2, AlertTriangle, Lock, Send, Loader2, Scale } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 interface ResultScreenProps {
   onBack: () => void;
+  onHome?: () => void;
   caseId: string;
 }
 
@@ -55,7 +56,7 @@ const urgencyLabel = (u: string | null) => {
   return { label: "—", color: "text-muted-foreground bg-muted" };
 };
 
-const ResultScreen = ({ onBack, caseId }: ResultScreenProps) => {
+const ResultScreen = ({ onBack, onHome, caseId }: ResultScreenProps) => {
   const [caseRow, setCaseRow] = useState<CaseRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -117,7 +118,15 @@ const ResultScreen = ({ onBack, caseId }: ResultScreenProps) => {
         <button onClick={onBack} className="text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <p className="text-sm font-semibold text-foreground">Результаты анализа</p>
+        <button
+          type="button"
+          onClick={onHome}
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
+          <Scale className="h-5 w-5 text-primary" />
+          <span className="text-sm font-bold tracking-tight text-foreground">LexAdvice</span>
+        </button>
+        <p className="ml-2 text-sm font-semibold text-muted-foreground">Результаты</p>
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">

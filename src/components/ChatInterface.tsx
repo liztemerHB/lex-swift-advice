@@ -6,6 +6,7 @@ import ConsentSheet from "@/components/ConsentSheet";
 
 interface ChatInterfaceProps {
   onBack: () => void;
+  onHome?: () => void;
   onShowResult: (caseId: string) => void;
   initialTopic?: string;
 }
@@ -18,7 +19,7 @@ const TypingIndicator = () => (
   </div>
 );
 
-const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProps) => {
+const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInterfaceProps) => {
   const { messages, isTyping, error, caseId, caseData, sendMessage } = useChat();
   const [inputValue, setInputValue] = useState(initialTopic ?? "");
   const [isRecording, setIsRecording] = useState(false);
@@ -64,15 +65,19 @@ const ChatInterface = ({ onBack, onShowResult, initialTopic }: ChatInterfaceProp
         <button onClick={onBack} className="text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onHome}
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-hero">
             <Scale className="h-4 w-4 text-primary-foreground" />
           </div>
-          <div>
+          <div className="text-left">
             <p className="text-sm font-semibold text-foreground">LexAdvice AI</p>
             <p className="text-xs text-muted-foreground">{isTyping ? "Печатает…" : "Онлайн"}</p>
           </div>
-        </div>
+        </button>
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
