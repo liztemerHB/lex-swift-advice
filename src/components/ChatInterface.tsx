@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, SendHorizontal, Scale, Mic, AlertCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useChat } from "@/hooks/useChat";
 import ConsentSheet from "@/components/ConsentSheet";
