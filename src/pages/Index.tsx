@@ -7,7 +7,6 @@ import ResultScreen from "@/components/ResultScreen";
 type View = "landing" | "chat" | "result";
 
 const Index = () => {
-  const navigate = useNavigate();
   const [view, setView] = useState<View>("landing");
   const [chatTopic, setChatTopic] = useState<string | undefined>();
   const [activeCaseId, setActiveCaseId] = useState<string | null>(null);
@@ -34,7 +33,6 @@ const Index = () => {
         <ResultScreen
           caseId={activeCaseId}
           onBack={() => setView("chat")}
-          onLawyerDashboard={() => navigate("/lawyer")}
         />
       )}
     </div>
