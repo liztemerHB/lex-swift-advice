@@ -10,9 +10,30 @@ import { toast } from "sonner";
 
 interface ResultScreenProps {
   onBack: () => void;
-  onLawyerDashboard: () => void;
   caseId: string;
 }
+
+const FACT_LABELS: Record<string, string> = {
+  affected_items: "Что пострадало",
+  source_of_leak: "Источник протечки",
+  time_since_leak_discovery: "Когда обнаружено",
+  presence_at_home_during_leak: "Были ли дома",
+  damage_description: "Описание ущерба",
+  estimated_damage: "Оценка ущерба",
+  city: "Город",
+  address: "Адрес",
+  date: "Дата происшествия",
+  parties: "Стороны",
+  documents: "Документы",
+  witnesses: "Свидетели",
+};
+
+const humanizeFactKey = (key: string) => {
+  const lower = key.toLowerCase();
+  if (FACT_LABELS[lower]) return FACT_LABELS[lower];
+  const spaced = key.replace(/[_-]+/g, " ").trim();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase();
+};
 
 interface CaseRow {
   id: string;
