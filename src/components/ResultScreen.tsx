@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 interface ResultScreenProps {
   onBack: () => void;
+  onHome?: () => void;
   caseId: string;
 }
 
