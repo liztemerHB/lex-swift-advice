@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Scale, Loader2, Send, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,12 +21,20 @@ const AuthPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [tgLoading, setTgLoading] = useState(false);
   const [tgWaiting, setTgWaiting] = useState(false);
+  const tgCancelRef = useRef(false);
 
   useEffect(() => {
     if (!authLoading && user) {
+      tgCancelRef.current = true;
       navigate(role === "admin" ? "/admin" : "/", { replace: true });
     }
   }, [user, role, authLoading, navigate]);
+
+  useEffect(() => {
+    return () => {
+      tgCancelRef.current = true;
+    };
+  }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,9 +78,11 @@ const AuthPage = () => {
       }
       window.open(data.deeplink, "_blank", "noopener");
       setTgWaiting(true);
+      tgCancelRef.current = false;
       const token: string = data.token;
       const started = Date.now();
       const tick = async () => {
+        if (tgCancelRef.current) return;
         if (Date.now() - started > 10 * 60 * 1000) {
           setTgWaiting(false);
           setTgLoading(false);
@@ -110,7 +120,8 @@ const AuthPage = () => {
         } catch (e) {
           console.error("tg poll error:", e);
         }
-        setTimeout(tick, 3000);
+        if (tgCancelRef.current) return;
+        setTimeout(tick, 5000);
       };
       setTimeout(tick, 2500);
     } catch (e) {
@@ -125,6 +136,7 @@ const AuthPage = () => {
   };
 
   const cancelTelegram = () => {
+    tgCancelRef.current = true;
     setTgWaiting(false);
     setTgLoading(false);
   };
