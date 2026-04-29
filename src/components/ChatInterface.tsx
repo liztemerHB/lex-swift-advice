@@ -139,6 +139,15 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
             <p className="text-xs text-muted-foreground">{isTyping ? "Печатает…" : "Онлайн"}</p>
           </div>
         </button>
+        {user && remainingMessages !== null && (
+          <Link
+            to="/pricing"
+            className="ml-auto flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs text-foreground hover:bg-primary/10 transition-colors"
+          >
+            <Zap className="h-3 w-3 text-primary" />
+            {remainingMessages} / {(plan.dailyAiMessages ?? 0)}
+          </Link>
+        )}
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
