@@ -14,6 +14,7 @@ const AuthPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialTab = searchParams.get("tab") === "signup" ? "signup" : "signin";
+  const refCode = searchParams.get("ref")?.trim().toUpperCase() ?? "";
   const { user, role, loading: authLoading } = useAuth();
   const [tab, setTab] = useState<"signin" | "signup">(initialTab);
   const [email, setEmail] = useState("");
@@ -73,7 +74,7 @@ const AuthPage = () => {
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
-        data: { full_name: fullName },
+        data: { full_name: fullName, ...(refCode ? { ref: refCode } : {}) },
       },
     });
     setSubmitting(false);

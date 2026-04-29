@@ -9,6 +9,7 @@ import AuthPage from "./pages/Auth";
 import LawyerAuth from "./pages/LawyerAuth";
 import Privacy from "./pages/Privacy";
 import Account from "./pages/Account";
+import Pricing from "./pages/Pricing";
 import LawyerDashboard from "./components/LawyerDashboard";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Overview from "./pages/admin/Overview";
@@ -42,6 +43,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/pricing" element={<Pricing />} />
             <Route path="/" element={<Index />} />
             <Route
               path="/lawyer"
