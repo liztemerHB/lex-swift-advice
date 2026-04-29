@@ -222,6 +222,32 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
       </div>
 
       <ConsentSheet open={consentOpen} onAccept={handleConsent} onOpenChange={setConsentOpen} />
+
+      <Dialog open={authPromptOpen} onOpenChange={setAuthPromptOpen}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <Sparkles className="h-6 w-6 text-primary" />
+            </div>
+            <DialogTitle className="text-center">
+              {reachedLimit ? "Продолжите бесплатно" : "Сохраните ваш план"}
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              {reachedLimit
+                ? "Вы использовали 3 бесплатных сообщения. Зарегистрируйтесь, чтобы продолжить разбор ситуации и сохранить историю."
+                : "Зарегистрируйтесь или войдите, чтобы открыть план действий, сохранить дело и получить персональные документы."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 pt-2">
+            <Button asChild variant="hero" className="w-full rounded-xl">
+              <Link to="/auth?tab=signup">Зарегистрироваться</Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full rounded-xl">
+              <Link to="/auth?tab=signin">У меня уже есть аккаунт</Link>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
