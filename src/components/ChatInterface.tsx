@@ -274,6 +274,29 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={limitPromptOpen} onOpenChange={setLimitPromptOpen}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <Zap className="h-6 w-6 text-primary" />
+            </div>
+            <DialogTitle className="text-center">Дневной лимит исчерпан</DialogTitle>
+            <DialogDescription className="text-center">
+              На тарифе <b>{plan.name}</b> доступно {plan.dailyAiMessages} сообщений ИИ в день.
+              Перейдите на Pro или Unlimited для расширенного лимита.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 pt-2">
+            <Button asChild variant="hero" className="w-full rounded-xl" onClick={() => refreshPlan()}>
+              <Link to="/pricing">Посмотреть тарифы</Link>
+            </Button>
+            <Button variant="outline" className="w-full rounded-xl" onClick={() => setLimitPromptOpen(false)}>
+              Закрыть
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
