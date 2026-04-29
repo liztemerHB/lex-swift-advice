@@ -178,7 +178,7 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
 
         {(isComplete || messages.filter((m) => m.role === "assistant").length >= 3) && caseId && (
           <div className="flex justify-center pt-4 animate-fade-in">
-            <Button variant="hero" className="rounded-xl" onClick={() => onShowResult(caseId)}>
+            <Button variant="hero" className="rounded-xl" onClick={() => handleShowResult(caseId)}>
               {isComplete ? "Смотреть результаты →" : "Показать план действий →"}
             </Button>
           </div>
