@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, SendHorizontal, Scale, Mic, AlertCircle, Sparkles } from "lucide-react";
+import { ArrowLeft, SendHorizontal, Scale, Mic, AlertCircle, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlan } from "@/hooks/usePlan";
 import ConsentSheet from "@/components/ConsentSheet";
 import {
   Dialog,
@@ -31,25 +32,29 @@ const TypingIndicator = () => (
 const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInterfaceProps) => {
   const { messages, isTyping, error, caseId, caseData, sendMessage } = useChat();
   const { user } = useAuth();
+  const { plan, remainingMessages, consumeMessage, refresh: refreshPlan } = usePlan();
   const [inputValue, setInputValue] = useState(initialTopic ?? "");
   const [isRecording, setIsRecording] = useState(false);
   const [consentOpen, setConsentOpen] = useState(true);
   const [consented, setConsented] = useState(false);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authPromptShown, setAuthPromptShown] = useState(false);
+  const [limitPromptOpen, setLimitPromptOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const userMessagesCount = messages.filter((m) => m.role === "user").length;
-  const MESSAGE_LIMIT = 3;
-  const reachedLimit = !user && userMessagesCount >= MESSAGE_LIMIT;
+  const GUEST_LIMIT = 3;
+  const guestReachedLimit = !user && userMessagesCount >= GUEST_LIMIT;
+  // For logged-in users with finite plan
+  const planReachedLimit = !!user && remainingMessages !== null && remainingMessages <= 0;
 
   // Auto-show prompt when guest hits the message limit
   useEffect(() => {
-    if (reachedLimit && !authPromptShown) {
+    if (guestReachedLimit && !authPromptShown) {
       setAuthPromptOpen(true);
       setAuthPromptShown(true);
     }
-  }, [reachedLimit, authPromptShown]);
+  }, [guestReachedLimit, authPromptShown]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -63,19 +68,30 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
   const handleSend = async () => {
     const text = inputValue.trim();
     if (!text || isTyping || !consented) return;
-    if (reachedLimit) {
+    if (guestReachedLimit) {
       setAuthPromptOpen(true);
+      return;
+    }
+    if (planReachedLimit) {
+      setLimitPromptOpen(true);
       return;
     }
     setInputValue("");
     const isFirst = messages.length === 0;
     await sendMessage(text, isFirst ? { personalData: true, privacyPolicy: true } : undefined);
+    if (user) {
+      await consumeMessage();
+    }
   };
 
   const handleQuickCategory = async (category: string) => {
     if (!consented || isTyping) return;
-    if (reachedLimit) {
+    if (guestReachedLimit) {
       setAuthPromptOpen(true);
+      return;
+    }
+    if (planReachedLimit) {
+      setLimitPromptOpen(true);
       return;
     }
     const isFirst = messages.length === 0;
@@ -83,6 +99,9 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
       `У меня проблема: ${category}`,
       isFirst ? { personalData: true, privacyPolicy: true } : undefined
     );
+    if (user) {
+      await consumeMessage();
+    }
   };
 
   const handleShowResult = (id: string) => {
@@ -92,6 +111,8 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
     }
     onShowResult(id);
   };
+
+  const reachedLimit = guestReachedLimit;
 
   const QUICK_CATEGORIES = ["ДТП", "Залив квартиры", "Развод", "Потребительский спор", "Трудовой спор", "Другое"];
   const WELCOME_TEXT =
