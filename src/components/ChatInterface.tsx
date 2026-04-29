@@ -63,6 +63,10 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
   const handleSend = async () => {
     const text = inputValue.trim();
     if (!text || isTyping || !consented) return;
+    if (reachedLimit) {
+      setAuthPromptOpen(true);
+      return;
+    }
     setInputValue("");
     const isFirst = messages.length === 0;
     await sendMessage(text, isFirst ? { personalData: true, privacyPolicy: true } : undefined);
@@ -70,11 +74,23 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
 
   const handleQuickCategory = async (category: string) => {
     if (!consented || isTyping) return;
+    if (reachedLimit) {
+      setAuthPromptOpen(true);
+      return;
+    }
     const isFirst = messages.length === 0;
     await sendMessage(
       `У меня проблема: ${category}`,
       isFirst ? { personalData: true, privacyPolicy: true } : undefined
     );
+  };
+
+  const handleShowResult = (id: string) => {
+    if (!user) {
+      setAuthPromptOpen(true);
+      return;
+    }
+    onShowResult(id);
   };
 
   const QUICK_CATEGORIES = ["ДТП", "Залив квартиры", "Развод", "Потребительский спор", "Трудовой спор", "Другое"];
