@@ -252,25 +252,78 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bonus_documents: number
+          bonus_messages: number
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          plan: Database["public"]["Enums"]["user_plan"]
+          plan_expires_at: string | null
+          referral_code: string | null
+          referred_by: string | null
           updated_at: string
         }
         Insert: {
+          bonus_documents?: number
+          bonus_messages?: number
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          plan?: Database["public"]["Enums"]["user_plan"]
+          plan_expires_at?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           updated_at?: string
         }
         Update: {
+          bonus_documents?: number
+          bonus_messages?: number
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          plan?: Database["public"]["Enums"]["user_plan"]
+          plan_expires_at?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          bonus_documents_granted: number
+          bonus_messages_granted: number
+          created_at: string
+          id: string
+          referred_user_id: string
+          referrer_id: string
+        }
+        Insert: {
+          bonus_documents_granted?: number
+          bonus_messages_granted?: number
+          created_at?: string
+          id?: string
+          referred_user_id: string
+          referrer_id: string
+        }
+        Update: {
+          bonus_documents_granted?: number
+          bonus_messages_granted?: number
+          created_at?: string
+          id?: string
+          referred_user_id?: string
+          referrer_id?: string
         }
         Relationships: []
       }
@@ -382,6 +435,63 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_daily: {
+        Row: {
+          ai_messages: number
+          created_at: string
+          day: string
+          documents: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_messages?: number
+          created_at?: string
+          day?: string
+          documents?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_messages?: number
+          created_at?: string
+          day?: string
+          documents?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      usage_monthly: {
+        Row: {
+          created_at: string
+          documents: number
+          id: string
+          month: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          documents?: number
+          id?: string
+          month?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          documents?: number
+          id?: string
+          month?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_credits: {
         Row: {
           balance_rub: number
@@ -435,6 +545,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      gen_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -445,6 +556,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "client" | "lawyer"
+      user_plan: "free" | "pro" | "unlimited"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -573,6 +685,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "client", "lawyer"],
+      user_plan: ["free", "pro", "unlimited"],
     },
   },
 } as const

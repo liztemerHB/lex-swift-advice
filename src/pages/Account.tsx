@@ -21,8 +21,14 @@ import {
   CheckCircle2,
   Scale,
   LogOut,
+  Zap,
+  Copy,
+  Users,
+  Gift,
 } from "lucide-react";
 import { toast } from "sonner";
+import { usePlan } from "@/hooks/usePlan";
+import { PLANS } from "@/config/plans";
 
 type Credits = { credits_total: number; credits_remaining: number; balance_rub: number };
 type Purchase = { id: string; document_type: string; title: string | null; price_rub: number; created_at: string };
@@ -32,6 +38,7 @@ type LeadPurchase = { id: string; price_rub: number; created_at: string; lead_id
 const Account = () => {
   const { user, role, signOut } = useAuth();
   const navigate = useNavigate();
+  const planState = usePlan();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -194,6 +201,103 @@ const Account = () => {
             <StatCard icon={<Wallet className="h-3.5 w-3.5" />} label="Баланс" value={`${credits.balance_rub} ₽`} />
             <StatCard icon={<FileText className="h-3.5 w-3.5" />} label="Дел создано" value={cases.length} />
           </div>
+        )}
+
+        {/* Plan card (clients only) */}
+        {role !== "lawyer" && role !== "admin" && (
+          <Card className="space-y-4 p-6">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Текущий тариф
+                </h2>
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-2xl font-bold text-foreground">{planState.plan.name}</span>
+                  <Badge variant={planState.planId === "free" ? "outline" : "secondary"}>
+                    {planState.plan.priceRub === 0
+                      ? "Бесплатно"
+                      : `${planState.plan.priceRub.toLocaleString("ru-RU")} ₽/мес`}
+                  </Badge>
+                </div>
+                {planState.planExpiresAt && planState.planId !== "free" && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Активен до {new Date(planState.planExpiresAt).toLocaleDateString("ru-RU")}
+                  </p>
+                )}
+              </div>
+              <Button asChild variant="hero" size="sm" className="rounded-lg">
+                <Link to="/pricing">
+                  <Zap className="h-4 w-4" />
+                  {planState.planId === "unlimited" ? "Сменить" : "Улучшить"}
+                </Link>
+              </Button>
+            </div>
+            <Separator />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <UsageRow
+                label="Сообщения ИИ сегодня"
+                used={planState.usage.aiMessagesToday}
+                limit={planState.plan.dailyAiMessages}
+                bonus={planState.bonusMessages}
+              />
+              <UsageRow
+                label={
+                  planState.plan.dailyDocuments != null
+                    ? "Документы сегодня"
+                    : "Документы в этом месяце"
+                }
+                used={
+                  planState.plan.dailyDocuments != null
+                    ? planState.usage.documentsToday
+                    : planState.usage.documentsThisMonth
+                }
+                limit={planState.plan.dailyDocuments ?? planState.plan.monthlyDocuments}
+                bonus={planState.bonusDocuments}
+              />
+            </div>
+          </Card>
+        )}
+
+        {/* Referral card */}
+        {role !== "admin" && planState.referralCode && (
+          <Card className="space-y-3 p-6">
+            <div className="flex items-center gap-2">
+              <Gift className="h-4 w-4 text-primary" />
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Пригласи друга
+              </h2>
+            </div>
+            <p className="text-sm text-foreground">
+              Поделитесь ссылкой — друг получит +5 сообщений ИИ при регистрации, и вы тоже.
+            </p>
+            <div className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-2">
+              <code className="flex-1 truncate text-xs">
+                {`${window.location.origin}/auth?tab=signup&ref=${planState.referralCode}`}
+              </code>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `${window.location.origin}/auth?tab=signup&ref=${planState.referralCode}`
+                  );
+                  toast.success("Ссылка скопирована");
+                }}
+              >
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <Users className="h-3.5 w-3.5" />
+                Приглашено друзей: <b className="text-foreground">{planState.referralsCount}</b>
+              </span>
+              <span>
+                Бонусные сообщения: <b className="text-foreground">{planState.bonusMessages}</b>
+              </span>
+            </div>
+          </Card>
         )}
 
         {/* Profile edit */}
@@ -369,5 +473,40 @@ const StatCard = ({ icon, label, value }: { icon: React.ReactNode; label: string
     <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
   </Card>
 );
+
+const UsageRow = ({
+  label,
+  used,
+  limit,
+  bonus,
+}: {
+  label: string;
+  used: number;
+  limit: number | null;
+  bonus: number;
+}) => {
+  const isUnlimited = limit == null;
+  const total = isUnlimited ? null : (limit as number) + bonus;
+  const pct = isUnlimited ? 100 : Math.min(100, total === 0 ? 0 : (used / (total as number)) * 100);
+  return (
+    <div className="rounded-lg border border-border p-3">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="font-medium text-foreground">
+          {isUnlimited ? "∞" : `${used} / ${total}`}
+        </span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
+        <div
+          className="h-full rounded-full bg-primary transition-all"
+          style={{ width: `${isUnlimited ? 100 : pct}%` }}
+        />
+      </div>
+      {bonus > 0 && !isUnlimited && (
+        <p className="mt-1 text-[10px] text-primary">+{bonus} бонусом за рефералы</p>
+      )}
+    </div>
+  );
+};
 
 export default Account;

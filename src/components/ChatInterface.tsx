@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, SendHorizontal, Scale, Mic, AlertCircle, Sparkles } from "lucide-react";
+import { ArrowLeft, SendHorizontal, Scale, Mic, AlertCircle, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlan } from "@/hooks/usePlan";
 import ConsentSheet from "@/components/ConsentSheet";
 import {
   Dialog,
@@ -31,25 +32,29 @@ const TypingIndicator = () => (
 const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInterfaceProps) => {
   const { messages, isTyping, error, caseId, caseData, sendMessage } = useChat();
   const { user } = useAuth();
+  const { plan, remainingMessages, consumeMessage, refresh: refreshPlan } = usePlan();
   const [inputValue, setInputValue] = useState(initialTopic ?? "");
   const [isRecording, setIsRecording] = useState(false);
   const [consentOpen, setConsentOpen] = useState(true);
   const [consented, setConsented] = useState(false);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authPromptShown, setAuthPromptShown] = useState(false);
+  const [limitPromptOpen, setLimitPromptOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const userMessagesCount = messages.filter((m) => m.role === "user").length;
-  const MESSAGE_LIMIT = 3;
-  const reachedLimit = !user && userMessagesCount >= MESSAGE_LIMIT;
+  const GUEST_LIMIT = 3;
+  const guestReachedLimit = !user && userMessagesCount >= GUEST_LIMIT;
+  // For logged-in users with finite plan
+  const planReachedLimit = !!user && remainingMessages !== null && remainingMessages <= 0;
 
   // Auto-show prompt when guest hits the message limit
   useEffect(() => {
-    if (reachedLimit && !authPromptShown) {
+    if (guestReachedLimit && !authPromptShown) {
       setAuthPromptOpen(true);
       setAuthPromptShown(true);
     }
-  }, [reachedLimit, authPromptShown]);
+  }, [guestReachedLimit, authPromptShown]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -63,19 +68,30 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
   const handleSend = async () => {
     const text = inputValue.trim();
     if (!text || isTyping || !consented) return;
-    if (reachedLimit) {
+    if (guestReachedLimit) {
       setAuthPromptOpen(true);
+      return;
+    }
+    if (planReachedLimit) {
+      setLimitPromptOpen(true);
       return;
     }
     setInputValue("");
     const isFirst = messages.length === 0;
     await sendMessage(text, isFirst ? { personalData: true, privacyPolicy: true } : undefined);
+    if (user) {
+      await consumeMessage();
+    }
   };
 
   const handleQuickCategory = async (category: string) => {
     if (!consented || isTyping) return;
-    if (reachedLimit) {
+    if (guestReachedLimit) {
       setAuthPromptOpen(true);
+      return;
+    }
+    if (planReachedLimit) {
+      setLimitPromptOpen(true);
       return;
     }
     const isFirst = messages.length === 0;
@@ -83,6 +99,9 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
       `У меня проблема: ${category}`,
       isFirst ? { personalData: true, privacyPolicy: true } : undefined
     );
+    if (user) {
+      await consumeMessage();
+    }
   };
 
   const handleShowResult = (id: string) => {
@@ -92,6 +111,8 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
     }
     onShowResult(id);
   };
+
+  const reachedLimit = guestReachedLimit;
 
   const QUICK_CATEGORIES = ["ДТП", "Залив квартиры", "Развод", "Потребительский спор", "Трудовой спор", "Другое"];
   const WELCOME_TEXT =
@@ -118,6 +139,15 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
             <p className="text-xs text-muted-foreground">{isTyping ? "Печатает…" : "Онлайн"}</p>
           </div>
         </button>
+        {user && remainingMessages !== null && (
+          <Link
+            to="/pricing"
+            className="ml-auto flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs text-foreground hover:bg-primary/10 transition-colors"
+          >
+            <Zap className="h-3 w-3 text-primary" />
+            {remainingMessages} / {(plan.dailyAiMessages ?? 0)}
+          </Link>
+        )}
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
@@ -249,6 +279,29 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
             </Button>
             <Button asChild variant="outline" className="w-full rounded-xl">
               <Link to="/auth?tab=signin">У меня уже есть аккаунт</Link>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={limitPromptOpen} onOpenChange={setLimitPromptOpen}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <Zap className="h-6 w-6 text-primary" />
+            </div>
+            <DialogTitle className="text-center">Дневной лимит исчерпан</DialogTitle>
+            <DialogDescription className="text-center">
+              На тарифе <b>{plan.name}</b> доступно {plan.dailyAiMessages} сообщений ИИ в день.
+              Перейдите на Pro или Unlimited для расширенного лимита.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 pt-2">
+            <Button asChild variant="hero" className="w-full rounded-xl" onClick={() => refreshPlan()}>
+              <Link to="/pricing">Посмотреть тарифы</Link>
+            </Button>
+            <Button variant="outline" className="w-full rounded-xl" onClick={() => setLimitPromptOpen(false)}>
+              Закрыть
             </Button>
           </div>
         </DialogContent>

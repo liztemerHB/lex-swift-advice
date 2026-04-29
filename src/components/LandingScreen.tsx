@@ -1,4 +1,4 @@
-import { Sparkles, Shield, Scale, LogOut, ShieldCheck, UserCircle2 } from "lucide-react";
+import { Sparkles, Shield, Scale, LogOut, ShieldCheck, UserCircle2, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,6 +35,12 @@ const LandingScreen = ({ onStartChat }: LandingScreenProps) => {
               {displayName}
             </span>
             <Button asChild variant="ghost" size="sm" className="h-9 rounded-lg px-3 text-sm">
+              <Link to="/pricing">
+                <Zap className="h-4 w-4" />
+                Тарифы
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="h-9 rounded-lg px-3 text-sm">
               <Link to="/account">
                 <UserCircle2 className="h-4 w-4" />
                 Кабинет
@@ -60,6 +66,9 @@ const LandingScreen = ({ onStartChat }: LandingScreenProps) => {
           </nav>
         ) : (
           <nav className="flex items-center gap-1.5">
+            <Button asChild variant="ghost" size="sm" className="h-9 rounded-lg px-3 text-sm">
+              <Link to="/pricing">Тарифы</Link>
+            </Button>
             <Button asChild variant="ghost" size="sm" className="h-9 rounded-lg px-3 text-sm">
               <Link to="/auth?tab=signin">Войти</Link>
             </Button>
