@@ -1,8 +1,17 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, SendHorizontal, Scale, Mic, AlertCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, SendHorizontal, Scale, Mic, AlertCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useChat } from "@/hooks/useChat";
+import { useAuth } from "@/hooks/useAuth";
 import ConsentSheet from "@/components/ConsentSheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ChatInterfaceProps {
   onBack: () => void;
@@ -21,11 +30,26 @@ const TypingIndicator = () => (
 
 const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInterfaceProps) => {
   const { messages, isTyping, error, caseId, caseData, sendMessage } = useChat();
+  const { user } = useAuth();
   const [inputValue, setInputValue] = useState(initialTopic ?? "");
   const [isRecording, setIsRecording] = useState(false);
   const [consentOpen, setConsentOpen] = useState(true);
   const [consented, setConsented] = useState(false);
+  const [authPromptOpen, setAuthPromptOpen] = useState(false);
+  const [authPromptShown, setAuthPromptShown] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const userMessagesCount = messages.filter((m) => m.role === "user").length;
+  const MESSAGE_LIMIT = 3;
+  const reachedLimit = !user && userMessagesCount >= MESSAGE_LIMIT;
+
+  // Auto-show prompt when guest hits the message limit
+  useEffect(() => {
+    if (reachedLimit && !authPromptShown) {
+      setAuthPromptOpen(true);
+      setAuthPromptShown(true);
+    }
+  }, [reachedLimit, authPromptShown]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -39,6 +63,10 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
   const handleSend = async () => {
     const text = inputValue.trim();
     if (!text || isTyping || !consented) return;
+    if (reachedLimit) {
+      setAuthPromptOpen(true);
+      return;
+    }
     setInputValue("");
     const isFirst = messages.length === 0;
     await sendMessage(text, isFirst ? { personalData: true, privacyPolicy: true } : undefined);
@@ -46,11 +74,23 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
 
   const handleQuickCategory = async (category: string) => {
     if (!consented || isTyping) return;
+    if (reachedLimit) {
+      setAuthPromptOpen(true);
+      return;
+    }
     const isFirst = messages.length === 0;
     await sendMessage(
       `У меня проблема: ${category}`,
       isFirst ? { personalData: true, privacyPolicy: true } : undefined
     );
+  };
+
+  const handleShowResult = (id: string) => {
+    if (!user) {
+      setAuthPromptOpen(true);
+      return;
+    }
+    onShowResult(id);
   };
 
   const QUICK_CATEGORIES = ["ДТП", "Залив квартиры", "Развод", "Потребительский спор", "Трудовой спор", "Другое"];
@@ -138,7 +178,7 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
 
         {(isComplete || messages.filter((m) => m.role === "assistant").length >= 3) && caseId && (
           <div className="flex justify-center pt-4 animate-fade-in">
-            <Button variant="hero" className="rounded-xl" onClick={() => onShowResult(caseId)}>
+            <Button variant="hero" className="rounded-xl" onClick={() => handleShowResult(caseId)}>
               {isComplete ? "Смотреть результаты →" : "Показать план действий →"}
             </Button>
           </div>
@@ -182,6 +222,32 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
       </div>
 
       <ConsentSheet open={consentOpen} onAccept={handleConsent} onOpenChange={setConsentOpen} />
+
+      <Dialog open={authPromptOpen} onOpenChange={setAuthPromptOpen}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <Sparkles className="h-6 w-6 text-primary" />
+            </div>
+            <DialogTitle className="text-center">
+              {reachedLimit ? "Продолжите бесплатно" : "Сохраните ваш план"}
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              {reachedLimit
+                ? "Вы использовали 3 бесплатных сообщения. Зарегистрируйтесь, чтобы продолжить разбор ситуации и сохранить историю."
+                : "Зарегистрируйтесь или войдите, чтобы открыть план действий, сохранить дело и получить персональные документы."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 pt-2">
+            <Button asChild variant="hero" className="w-full rounded-xl">
+              <Link to="/auth?tab=signup">Зарегистрироваться</Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full rounded-xl">
+              <Link to="/auth?tab=signin">У меня уже есть аккаунт</Link>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
