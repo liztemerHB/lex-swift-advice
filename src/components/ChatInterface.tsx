@@ -1,8 +1,17 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, SendHorizontal, Scale, Mic, AlertCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, SendHorizontal, Scale, Mic, AlertCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useChat } from "@/hooks/useChat";
+import { useAuth } from "@/hooks/useAuth";
 import ConsentSheet from "@/components/ConsentSheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ChatInterfaceProps {
   onBack: () => void;
