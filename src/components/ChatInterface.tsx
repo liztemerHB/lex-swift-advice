@@ -223,8 +223,13 @@ const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInter
 
       <ConsentSheet open={consentOpen} onAccept={handleConsent} onOpenChange={setConsentOpen} />
 
-      <Dialog open={authPromptOpen} onOpenChange={setAuthPromptOpen}>
-        <DialogContent className="max-w-sm rounded-2xl">
+      <Dialog open={authPromptOpen} onOpenChange={(open) => { if (user) setAuthPromptOpen(open); }}>
+        <DialogContent
+          className="max-w-sm rounded-2xl [&>button]:hidden"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
               <Sparkles className="h-6 w-6 text-primary" />
