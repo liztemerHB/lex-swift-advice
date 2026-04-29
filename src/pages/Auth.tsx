@@ -250,6 +250,11 @@ const AuthPage = () => {
                 <Label htmlFor="pwd-up">Пароль</Label>
                 <Input id="pwd-up" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Минимум 6 символов" />
               </div>
+              {refCode && (
+                <p className="rounded-lg bg-primary/10 px-3 py-2 text-xs text-primary">
+                  Применён код друга: <b>{refCode}</b> — вы получите +5 бонусных сообщений ИИ.
+                </p>
+              )}
               <Button type="submit" variant="hero" className="w-full" disabled={submitting}>
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Создать аккаунт"}
               </Button>
