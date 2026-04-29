@@ -30,11 +30,26 @@ const TypingIndicator = () => (
 
 const ChatInterface = ({ onBack, onHome, onShowResult, initialTopic }: ChatInterfaceProps) => {
   const { messages, isTyping, error, caseId, caseData, sendMessage } = useChat();
+  const { user } = useAuth();
   const [inputValue, setInputValue] = useState(initialTopic ?? "");
   const [isRecording, setIsRecording] = useState(false);
   const [consentOpen, setConsentOpen] = useState(true);
   const [consented, setConsented] = useState(false);
+  const [authPromptOpen, setAuthPromptOpen] = useState(false);
+  const [authPromptShown, setAuthPromptShown] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const userMessagesCount = messages.filter((m) => m.role === "user").length;
+  const MESSAGE_LIMIT = 3;
+  const reachedLimit = !user && userMessagesCount >= MESSAGE_LIMIT;
+
+  // Auto-show prompt when guest hits the message limit
+  useEffect(() => {
+    if (reachedLimit && !authPromptShown) {
+      setAuthPromptOpen(true);
+      setAuthPromptShown(true);
+    }
+  }, [reachedLimit, authPromptShown]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
