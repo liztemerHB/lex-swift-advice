@@ -21,8 +21,14 @@ import {
   CheckCircle2,
   Scale,
   LogOut,
+  Zap,
+  Copy,
+  Users,
+  Gift,
 } from "lucide-react";
 import { toast } from "sonner";
+import { usePlan } from "@/hooks/usePlan";
+import { PLANS } from "@/config/plans";
 
 type Credits = { credits_total: number; credits_remaining: number; balance_rub: number };
 type Purchase = { id: string; document_type: string; title: string | null; price_rub: number; created_at: string };
@@ -32,6 +38,7 @@ type LeadPurchase = { id: string; price_rub: number; created_at: string; lead_id
 const Account = () => {
   const { user, role, signOut } = useAuth();
   const navigate = useNavigate();
+  const planState = usePlan();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
