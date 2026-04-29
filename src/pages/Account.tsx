@@ -474,4 +474,39 @@ const StatCard = ({ icon, label, value }: { icon: React.ReactNode; label: string
   </Card>
 );
 
+const UsageRow = ({
+  label,
+  used,
+  limit,
+  bonus,
+}: {
+  label: string;
+  used: number;
+  limit: number | null;
+  bonus: number;
+}) => {
+  const isUnlimited = limit == null;
+  const total = isUnlimited ? null : (limit as number) + bonus;
+  const pct = isUnlimited ? 100 : Math.min(100, total === 0 ? 0 : (used / (total as number)) * 100);
+  return (
+    <div className="rounded-lg border border-border p-3">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="font-medium text-foreground">
+          {isUnlimited ? "∞" : `${used} / ${total}`}
+        </span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
+        <div
+          className="h-full rounded-full bg-primary transition-all"
+          style={{ width: `${isUnlimited ? 100 : pct}%` }}
+        />
+      </div>
+      {bonus > 0 && !isUnlimited && (
+        <p className="mt-1 text-[10px] text-primary">+{bonus} бонусом за рефералы</p>
+      )}
+    </div>
+  );
+};
+
 export default Account;
