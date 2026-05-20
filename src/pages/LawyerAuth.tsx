@@ -118,6 +118,23 @@ const LawyerAuth = () => {
               <Button type="submit" variant="hero" className="w-full" disabled={submitting}>
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Войти в кабинет"}
               </Button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!email) {
+                    toast.error("Введите email выше, чтобы получить ссылку");
+                    return;
+                  }
+                  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                  });
+                  if (error) toast.error(error.message);
+                  else toast.success("Письмо для сброса пароля отправлено");
+                }}
+                className="block w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Забыли пароль?
+              </button>
             </form>
           </TabsContent>
 
