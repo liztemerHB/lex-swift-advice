@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Scale, Briefcase, Loader2, MapPin, Phone, LogOut, UserCircle2, MessageCircle } from "lucide-react";
+import { Scale, Briefcase, Loader2, MapPin, Phone, LogOut, UserCircle2, MessageCircle, IdCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { useLeads } from "@/hooks/useLeads";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const urgencyMap: Record<string, { label: string; color: string }> = {
@@ -15,10 +16,21 @@ const urgencyMap: Record<string, { label: string; color: string }> = {
 
 const LawyerDashboard = () => {
   const { leads, loading, purchase } = useLeads();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [revealedContacts, setRevealedContacts] = useState<Record<string, string>>({});
+  const [profileCompleted, setProfileCompleted] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("lawyer_profiles")
+      .select("completed")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setProfileCompleted(data?.completed ?? false));
+  }, [user]);
 
   const handleConfirm = async () => {
     if (!confirmId) return;
@@ -43,6 +55,9 @@ const LawyerDashboard = () => {
           <p className="text-sm font-semibold text-foreground">Панель юриста</p>
         </div>
         <div className="flex items-center gap-1">
+          <Link to="/lawyer/profile" className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" title="Мой профиль">
+            <IdCard className="h-4 w-4" />
+          </Link>
           <Link to="/chats" className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" title="Чаты">
             <MessageCircle className="h-4 w-4" />
           </Link>
@@ -56,6 +71,15 @@ const LawyerDashboard = () => {
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 py-5">
+        {profileCompleted === false && (
+          <Link
+            to="/lawyer/profile"
+            className="mb-4 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-800 hover:bg-amber-100"
+          >
+            <span>Заполните профиль — клиенты увидят, кто им помогает</span>
+            <IdCard className="h-4 w-4 shrink-0" />
+          </Link>
+        )}
         <div className="mb-5 grid grid-cols-3 gap-3">
           {[
             { label: "Доступно", value: leads.filter((l) => l.status === "available").length, accent: true },
