@@ -40,7 +40,7 @@ const LawyerAuth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -52,6 +52,12 @@ const LawyerAuth = () => {
     if (error) {
       toast.error(error.message);
       return;
+    }
+    if (data.user?.id) {
+      // Fire-and-forget admin notification
+      supabase.functions
+        .invoke("notify-lawyer-application", { body: { user_id: data.user.id } })
+        .catch((err) => console.error("notify failed", err));
     }
     toast.success("Заявка отправлена. После подтверждения администратором вы получите доступ.");
   };
