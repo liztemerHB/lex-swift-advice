@@ -14,6 +14,8 @@ const urgencyMap: Record<string, { label: string; color: string }> = {
   low: { label: "Низкий", color: "bg-emerald-50 text-emerald-600" },
 };
 
+const errorMessage = (error: unknown) => (error instanceof Error ? error.message : "Ошибка покупки");
+
 const LawyerDashboard = () => {
   const { leads, loading, purchase } = useLeads();
   const { signOut, user } = useAuth();
@@ -39,14 +41,14 @@ const LawyerDashboard = () => {
       supabase.from("lead_contacts").select("lead_id, contact"),
     ]).then(([threadsRes, purchasesRes, contactsRes]) => {
         const map: Record<string, string> = {};
-        (threadsRes.data ?? []).forEach((t: any) => { if (t.lead_id) map[t.lead_id] = t.id; });
+        (threadsRes.data ?? []).forEach((t) => { if (t.lead_id) map[t.lead_id] = t.id; });
         setThreadByLead(map);
 
-        const purchased = new Set<string>((purchasesRes.data ?? []).map((p: any) => p.lead_id));
+        const purchased = new Set<string>((purchasesRes.data ?? []).map((p) => p.lead_id));
         setPurchasedLeadIds(purchased);
 
         const contacts: Record<string, string> = {};
-        (contactsRes.data ?? []).forEach((c: any) => {
+        (contactsRes.data ?? []).forEach((c) => {
           if (c.lead_id && purchased.has(c.lead_id)) contacts[c.lead_id] = c.contact;
         });
         setRevealedContacts(contacts);
@@ -62,8 +64,8 @@ const LawyerDashboard = () => {
       setPurchasedLeadIds((p) => new Set(p).add(confirmId));
       if (res.threadId) setThreadByLead((p) => ({ ...p, [confirmId]: res.threadId! }));
       toast.success(res.alreadyPurchased ? "Контакты уже открыты" : "Контакты открыты");
-    } catch (e: any) {
-      toast.error(e.message ?? "Ошибка покупки");
+    } catch (e: unknown) {
+      toast.error(errorMessage(e));
     } finally {
       setBusy(false);
       setConfirmId(null);
