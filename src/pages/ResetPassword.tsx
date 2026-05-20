@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Scale, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,24 +9,67 @@ import { toast } from "sonner";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [ready, setReady] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    // Supabase puts the recovery token in the URL hash and creates a temporary session.
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
-        setReady(true);
+    const init = async () => {
+      try {
+        // 1) New-style link: ?token_hash=...&type=recovery
+        const tokenHash = searchParams.get("token_hash");
+        const type = searchParams.get("type");
+        if (tokenHash && type) {
+          const { error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: type as "recovery",
+          });
+          if (error) {
+            setErrorMsg("Ссылка недействительна или истекла. Запросите сброс пароля снова.");
+            setChecking(false);
+            return;
+          }
+          setReady(true);
+          setChecking(false);
+          return;
+        }
+
+        // 2) Old-style link: #access_token=...&type=recovery — handled automatically by supabase-js
+        // Wait briefly for detectSessionInUrl to run.
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          setReady(true);
+          setChecking(false);
+          return;
+        }
+
+        // 3) Listen for PASSWORD_RECOVERY event in case it lands asynchronously
+        const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+          if ((event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") && session) {
+            setReady(true);
+            setChecking(false);
+          }
+        });
+        // Give it a moment, then stop "checking"
+        setTimeout(() => {
+          setChecking((c) => {
+            if (c) setErrorMsg("Откройте ссылку из письма для сброса пароля.");
+            return false;
+          });
+        }, 1500);
+        return () => sub.subscription.unsubscribe();
+      } catch (e) {
+        console.error(e);
+        setErrorMsg("Не удалось обработать ссылку сброса пароля.");
+        setChecking(false);
       }
-    });
-    // Fallback: if already signed in via recovery link
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setReady(true);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
+    };
+    init();
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +89,8 @@ const ResetPassword = () => {
       return;
     }
     toast.success("Пароль обновлён");
-    navigate("/", { replace: true });
+    await supabase.auth.signOut();
+    navigate("/auth", { replace: true });
   };
 
   return (
@@ -62,11 +106,11 @@ const ResetPassword = () => {
           </div>
         </div>
 
-        {!ready ? (
-          <p className="text-center text-sm text-muted-foreground">
-            Откройте ссылку из письма для сброса пароля.
-          </p>
-        ) : (
+        {checking ? (
+          <div className="flex justify-center py-4">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : ready ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="new-pwd">Новый пароль</Label>
@@ -96,6 +140,15 @@ const ResetPassword = () => {
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Сохранить пароль"}
             </Button>
           </form>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-center text-sm text-muted-foreground">
+              {errorMsg ?? "Откройте ссылку из письма для сброса пароля."}
+            </p>
+            <Button variant="outline" className="w-full" onClick={() => navigate("/auth")}>
+              На страницу входа
+            </Button>
+          </div>
         )}
       </div>
     </div>
