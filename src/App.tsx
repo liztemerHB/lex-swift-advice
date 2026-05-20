@@ -11,6 +11,8 @@ import Privacy from "./pages/Privacy";
 import Account from "./pages/Account";
 import Pricing from "./pages/Pricing";
 import LawyerDashboard from "./components/LawyerDashboard";
+import ChatThread from "./pages/ChatThread";
+import ChatList from "./pages/ChatList";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Overview from "./pages/admin/Overview";
 import Users from "./pages/admin/Users";
@@ -45,6 +47,22 @@ const App = () => (
               }
             />
             <Route path="/pricing" element={<Pricing />} />
+            <Route
+              path="/chats"
+              element={
+                <ProtectedRoute>
+                  <ChatList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/chat/:threadId"
+              element={
+                <ProtectedRoute>
+                  <ChatThread />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/" element={<Index />} />
             <Route
               path="/lawyer"

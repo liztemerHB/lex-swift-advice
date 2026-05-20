@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Scale, Briefcase, Loader2, MapPin, Phone, LogOut, UserCircle2 } from "lucide-react";
+import { Scale, Briefcase, Loader2, MapPin, Phone, LogOut, UserCircle2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { useLeads } from "@/hooks/useLeads";
@@ -43,6 +43,9 @@ const LawyerDashboard = () => {
           <p className="text-sm font-semibold text-foreground">Панель юриста</p>
         </div>
         <div className="flex items-center gap-1">
+          <Link to="/chats" className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" title="Чаты">
+            <MessageCircle className="h-4 w-4" />
+          </Link>
           <Link to="/account" className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" title="Кабинет">
             <UserCircle2 className="h-4 w-4" />
           </Link>
