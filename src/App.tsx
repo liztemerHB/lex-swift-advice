@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/Auth";
 import LawyerAuth from "./pages/LawyerAuth";
 import Privacy from "./pages/Privacy";
+import ResetPassword from "./pages/ResetPassword";
 import Account from "./pages/Account";
 import Pricing from "./pages/Pricing";
 import LawyerDashboard from "./components/LawyerDashboard";
