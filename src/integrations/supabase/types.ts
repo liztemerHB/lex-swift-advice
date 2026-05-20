@@ -103,6 +103,74 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_thread_messages: {
+        Row: {
+          attachment_path: string | null
+          attachment_type: string | null
+          content: string | null
+          created_at: string
+          id: string
+          sender_id: string
+          thread_id: string
+        }
+        Insert: {
+          attachment_path?: string | null
+          attachment_type?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          sender_id: string
+          thread_id: string
+        }
+        Update: {
+          attachment_path?: string | null
+          attachment_type?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          sender_id?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_thread_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_threads: {
+        Row: {
+          case_id: string | null
+          client_id: string | null
+          created_at: string
+          id: string
+          last_message_at: string | null
+          lawyer_id: string
+          lead_id: string
+        }
+        Insert: {
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          lawyer_id: string
+          lead_id: string
+        }
+        Update: {
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          lawyer_id?: string
+          lead_id?: string
+        }
+        Relationships: []
+      }
       document_purchases: {
         Row: {
           case_id: string | null
