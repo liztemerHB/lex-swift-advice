@@ -75,6 +75,13 @@ Deno.serve(async (req) => {
       .eq("lawyer_id", user.id)
       .maybeSingle();
 
+    if (!existing && lead.status !== "available") {
+      return new Response(JSON.stringify({ error: "Лид уже в работе у другого юриста" }), {
+        status: 409,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (!existing) {
       const { error: purchaseErr } = await admin.from("lead_purchases").insert({
         lead_id: leadId,
@@ -85,6 +92,26 @@ Deno.serve(async (req) => {
 
       await admin.from("leads").update({ status: "purchased" }).eq("id", leadId);
     }
+
+    const { data: caseRow } = lead.case_id
+      ? await admin.from("cases").select("user_id").eq("id", lead.case_id).maybeSingle()
+      : { data: null };
+
+    const { data: thread, error: threadErr } = await admin
+      .from("chat_threads")
+      .upsert(
+        {
+          lead_id: leadId,
+          case_id: lead.case_id,
+          lawyer_id: user.id,
+          client_id: caseRow?.user_id ?? null,
+          last_message_at: new Date().toISOString(),
+        },
+        { onConflict: "lead_id" },
+      )
+      .select("id")
+      .maybeSingle();
+    if (threadErr) throw threadErr;
 
     const { data: contactRow } = await admin
       .from("lead_contacts")
@@ -102,6 +129,8 @@ Deno.serve(async (req) => {
       JSON.stringify({
         success: true,
         contact: contactRow?.contact ?? null,
+        threadId: thread?.id ?? null,
+        alreadyPurchased: Boolean(existing),
         lead: updatedLead,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
