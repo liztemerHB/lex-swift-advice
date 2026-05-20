@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Scale, Briefcase, Loader2, MapPin, Phone, LogOut, UserCircle2, MessageCircle } from "lucide-react";
+import { Scale, Briefcase, Loader2, MapPin, Phone, LogOut, UserCircle2, MessageCircle, IdCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { useLeads } from "@/hooks/useLeads";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const urgencyMap: Record<string, { label: string; color: string }> = {
