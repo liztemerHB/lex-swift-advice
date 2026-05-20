@@ -176,12 +176,23 @@ const ChatThread = () => {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-foreground">
-            {peer?.full_name || peer?.email || "Собеседник"}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {user?.id === thread?.lawyer_id ? "Клиент" : "Юрист"}
-          </p>
+          {thread && user?.id !== thread.lawyer_id ? (
+            <Link to={`/lawyers/${thread.lawyer_id}`} className="block min-w-0 hover:underline">
+              <p className="truncate text-sm font-semibold text-foreground">
+                {peer?.full_name || peer?.email || "Юрист"}
+              </p>
+              <p className="text-xs text-muted-foreground">Юрист · открыть профиль</p>
+            </Link>
+          ) : (
+            <>
+              <p className="truncate text-sm font-semibold text-foreground">
+                {peer?.full_name || peer?.email || "Собеседник"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {user?.id === thread?.lawyer_id ? "Клиент" : "Юрист"}
+              </p>
+            </>
+          )}
         </div>
       </header>
 
