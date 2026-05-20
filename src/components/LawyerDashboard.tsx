@@ -21,6 +21,7 @@ const LawyerDashboard = () => {
   const [busy, setBusy] = useState(false);
   const [revealedContacts, setRevealedContacts] = useState<Record<string, string>>({});
   const [threadByLead, setThreadByLead] = useState<Record<string, string>>({});
+  const [purchasedLeadIds, setPurchasedLeadIds] = useState<Set<string>>(new Set());
   const [profileCompleted, setProfileCompleted] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
@@ -32,14 +33,23 @@ const LawyerDashboard = () => {
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => setProfileCompleted(data?.completed ?? false));
-    supabase
-      .from("chat_threads")
-      .select("id, lead_id")
-      .eq("lawyer_id", user.id)
-      .then(({ data }) => {
+    Promise.all([
+      supabase.from("chat_threads").select("id, lead_id").eq("lawyer_id", user.id),
+      supabase.from("lead_purchases").select("lead_id").eq("lawyer_id", user.id),
+      supabase.from("lead_contacts").select("lead_id, contact"),
+    ]).then(([threadsRes, purchasesRes, contactsRes]) => {
         const map: Record<string, string> = {};
-        (data ?? []).forEach((t: any) => { if (t.lead_id) map[t.lead_id] = t.id; });
+        (threadsRes.data ?? []).forEach((t: any) => { if (t.lead_id) map[t.lead_id] = t.id; });
         setThreadByLead(map);
+
+        const purchased = new Set<string>((purchasesRes.data ?? []).map((p: any) => p.lead_id));
+        setPurchasedLeadIds(purchased);
+
+        const contacts: Record<string, string> = {};
+        (contactsRes.data ?? []).forEach((c: any) => {
+          if (c.lead_id && purchased.has(c.lead_id)) contacts[c.lead_id] = c.contact;
+        });
+        setRevealedContacts(contacts);
       });
   }, [user]);
 
@@ -49,15 +59,9 @@ const LawyerDashboard = () => {
     try {
       const res = await purchase(confirmId);
       if (res.contact) setRevealedContacts((p) => ({ ...p, [confirmId]: res.contact! }));
-      // fetch thread for this lead
-      const { data: t } = await supabase
-        .from("chat_threads")
-        .select("id")
-        .eq("lead_id", confirmId)
-        .eq("lawyer_id", user!.id)
-        .maybeSingle();
-      if (t?.id) setThreadByLead((p) => ({ ...p, [confirmId]: t.id }));
-      toast.success("Контакты открыты");
+      setPurchasedLeadIds((p) => new Set(p).add(confirmId));
+      if (res.threadId) setThreadByLead((p) => ({ ...p, [confirmId]: res.threadId! }));
+      toast.success(res.alreadyPurchased ? "Контакты уже открыты" : "Контакты открыты");
     } catch (e: any) {
       toast.error(e.message ?? "Ошибка покупки");
     } finally {
@@ -127,6 +131,7 @@ const LawyerDashboard = () => {
             {leads.map((lead) => {
               const u = urgencyMap[lead.urgency ?? "low"] ?? urgencyMap.low;
               const contact = revealedContacts[lead.id];
+              const purchased = purchasedLeadIds.has(lead.id);
               return (
                 <div key={lead.id} className="rounded-2xl border border-border p-4 shadow-card space-y-3">
                   <div className="flex items-start justify-between">
@@ -164,7 +169,7 @@ const LawyerDashboard = () => {
                     </div>
                   )}
 
-                  {threadByLead[lead.id] ? (
+                   {threadByLead[lead.id] ? (
                     <Button
                       variant="hero"
                       size="sm"
@@ -172,18 +177,23 @@ const LawyerDashboard = () => {
                       onClick={() => navigate(`/chat/${threadByLead[lead.id]}`)}
                     >
                       <MessageCircle className="h-3.5 w-3.5" />
-                      Открыть чат с клиентом
+                      Написать клиенту
                     </Button>
-                  ) : lead.status === "available" ? (
+                  ) : !purchased && lead.status === "available" ? (
                     <Button variant="hero" size="sm" className="w-full rounded-lg" onClick={() => setConfirmId(lead.id)}>
                       <Briefcase className="h-3.5 w-3.5" />
                       Взять в работу
                     </Button>
-                  ) : !contact ? (
+                  ) : !purchased && !contact ? (
                     <Button variant="outline" size="sm" className="w-full rounded-lg" onClick={() => setConfirmId(lead.id)}>
                       Открыть контакт
                     </Button>
-                  ) : null}
+                  ) : (
+                    <Button variant="outline" size="sm" className="w-full rounded-lg" disabled>
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      Чат создаётся…
+                    </Button>
+                  )}
                 </div>
               );
             })}
