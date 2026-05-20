@@ -49,6 +49,14 @@ const LawyerDashboard = () => {
     try {
       const res = await purchase(confirmId);
       if (res.contact) setRevealedContacts((p) => ({ ...p, [confirmId]: res.contact! }));
+      // fetch thread for this lead
+      const { data: t } = await supabase
+        .from("chat_threads")
+        .select("id")
+        .eq("lead_id", confirmId)
+        .eq("lawyer_id", user!.id)
+        .maybeSingle();
+      if (t?.id) setThreadByLead((p) => ({ ...p, [confirmId]: t.id }));
       toast.success("Контакты открыты");
     } catch (e: any) {
       toast.error(e.message ?? "Ошибка покупки");
