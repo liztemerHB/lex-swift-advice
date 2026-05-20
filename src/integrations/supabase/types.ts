@@ -133,6 +133,45 @@ export type Database = {
         }
         Relationships: []
       }
+      lawyer_applications: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["lawyer_app_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["lawyer_app_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["lawyer_app_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       lead_contacts: {
         Row: {
           consent_personal_data: boolean
@@ -556,6 +595,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "client" | "lawyer"
+      lawyer_app_status: "pending" | "approved" | "rejected"
       user_plan: "free" | "pro" | "unlimited"
     }
     CompositeTypes: {
@@ -685,6 +725,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "client", "lawyer"],
+      lawyer_app_status: ["pending", "approved", "rejected"],
       user_plan: ["free", "pro", "unlimited"],
     },
   },
