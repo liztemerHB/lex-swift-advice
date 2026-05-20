@@ -75,6 +75,22 @@ const App = () => (
               }
             />
             <Route
+              path="/lawyer/profile"
+              element={
+                <ProtectedRoute requiredRole="lawyer">
+                  <LawyerProfileEdit />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/lawyers/:lawyerId"
+              element={
+                <ProtectedRoute>
+                  <LawyerProfileView />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin"
               element={
                 <ProtectedRoute requiredRole="admin">
