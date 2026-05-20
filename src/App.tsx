@@ -41,6 +41,7 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/lawyer-auth" element={<LawyerAuth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route
               path="/account"
               element={
