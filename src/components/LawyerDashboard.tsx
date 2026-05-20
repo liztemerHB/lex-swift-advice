@@ -106,7 +106,7 @@ const LawyerDashboard = () => {
         <div className="mb-5 grid grid-cols-3 gap-3">
           {[
             { label: "Доступно", value: leads.filter((l) => l.status === "available").length, accent: true },
-            { label: "Куплено", value: leads.filter((l) => l.status === "sold").length },
+            { label: "Куплено", value: purchasedLeadIds.size },
             { label: "Всего", value: leads.length },
           ].map((s) => (
             <div key={s.label} className="rounded-xl border border-border p-3 text-center shadow-card">
