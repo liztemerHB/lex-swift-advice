@@ -13,6 +13,8 @@ import Pricing from "./pages/Pricing";
 import LawyerDashboard from "./components/LawyerDashboard";
 import ChatThread from "./pages/ChatThread";
 import ChatList from "./pages/ChatList";
+import LawyerProfileEdit from "./pages/LawyerProfileEdit";
+import LawyerProfileView from "./pages/LawyerProfileView";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Overview from "./pages/admin/Overview";
 import Users from "./pages/admin/Users";
