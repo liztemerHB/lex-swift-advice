@@ -157,21 +157,33 @@ const LawyerDashboard = () => {
                     <p className="text-xs text-muted-foreground">Цена лида: {lead.price_rub} ₽</p>
                   </div>
 
-                  {contact ? (
+                  {contact && (
                     <div className="flex items-center gap-2 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
                       <Phone className="h-4 w-4" />
                       <span className="font-medium">{contact}</span>
                     </div>
+                  )}
+
+                  {threadByLead[lead.id] ? (
+                    <Button
+                      variant="hero"
+                      size="sm"
+                      className="w-full rounded-lg"
+                      onClick={() => navigate(`/chat/${threadByLead[lead.id]}`)}
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      Открыть чат с клиентом
+                    </Button>
                   ) : lead.status === "available" ? (
                     <Button variant="hero" size="sm" className="w-full rounded-lg" onClick={() => setConfirmId(lead.id)}>
                       <Briefcase className="h-3.5 w-3.5" />
                       Взять в работу
                     </Button>
-                  ) : (
+                  ) : !contact ? (
                     <Button variant="outline" size="sm" className="w-full rounded-lg" onClick={() => setConfirmId(lead.id)}>
                       Открыть контакт
                     </Button>
-                  )}
+                  ) : null}
                 </div>
               );
             })}
