@@ -72,6 +72,28 @@ const LawyerDashboard = () => {
     }
   };
 
+  const openPurchasedChat = async (leadId: string) => {
+    const threadId = threadByLead[leadId];
+    if (threadId) {
+      navigate(`/chat/${threadId}`);
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const res = await purchase(leadId);
+      if (res.contact) setRevealedContacts((p) => ({ ...p, [leadId]: res.contact! }));
+      if (!res.threadId) throw new Error("Чат пока не создан");
+      setPurchasedLeadIds((p) => new Set(p).add(leadId));
+      setThreadByLead((p) => ({ ...p, [leadId]: res.threadId! }));
+      navigate(`/chat/${res.threadId}`);
+    } catch (e: unknown) {
+      toast.error(errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-app flex-col bg-background">
       <header className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -171,12 +193,13 @@ const LawyerDashboard = () => {
                     </div>
                   )}
 
-                   {threadByLead[lead.id] ? (
+                  {purchased ? (
                     <Button
                       variant="hero"
                       size="sm"
                       className="w-full rounded-lg"
-                      onClick={() => navigate(`/chat/${threadByLead[lead.id]}`)}
+                      onClick={() => openPurchasedChat(lead.id)}
+                      disabled={busy}
                     >
                       <MessageCircle className="h-3.5 w-3.5" />
                       Написать клиенту
@@ -192,8 +215,7 @@ const LawyerDashboard = () => {
                     </Button>
                   ) : (
                     <Button variant="outline" size="sm" className="w-full rounded-lg" disabled>
-                      <MessageCircle className="h-3.5 w-3.5" />
-                      Чат создаётся…
+                      Уже в работе
                     </Button>
                   )}
                 </div>
