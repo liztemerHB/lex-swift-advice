@@ -20,7 +20,9 @@ const LawyerDashboard = () => {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [revealedContacts, setRevealedContacts] = useState<Record<string, string>>({});
+  const [threadByLead, setThreadByLead] = useState<Record<string, string>>({});
   const [profileCompleted, setProfileCompleted] = useState<boolean | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user) return;
@@ -30,6 +32,15 @@ const LawyerDashboard = () => {
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => setProfileCompleted(data?.completed ?? false));
+    supabase
+      .from("chat_threads")
+      .select("id, lead_id")
+      .eq("lawyer_id", user.id)
+      .then(({ data }) => {
+        const map: Record<string, string> = {};
+        (data ?? []).forEach((t: any) => { if (t.lead_id) map[t.lead_id] = t.id; });
+        setThreadByLead(map);
+      });
   }, [user]);
 
   const handleConfirm = async () => {
