@@ -163,6 +163,9 @@ const Account = () => {
             <span className="font-bold tracking-tight">LexAdvice</span>
           </Link>
           <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/chats">💬 Чаты</Link>
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
               <ArrowLeft className="h-4 w-4" /> Назад
             </Button>
