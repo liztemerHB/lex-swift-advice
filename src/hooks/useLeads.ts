@@ -40,7 +40,7 @@ export const useLeads = () => {
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
     await load();
-    return data as { ok: boolean; contact: string | null; price_rub: number };
+    return data as { success: boolean; contact: string | null; threadId: string | null; alreadyPurchased: boolean };
   }, [load]);
 
   return { leads, loading, error, reload: load, purchase };
