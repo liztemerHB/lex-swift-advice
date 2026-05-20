@@ -240,6 +240,75 @@ export type Database = {
         }
         Relationships: []
       }
+      lawyer_profiles: {
+        Row: {
+          additional_education: string | null
+          advocate_since: string | null
+          bar_chamber: string | null
+          bio: string | null
+          city: string | null
+          completed: boolean
+          created_at: string
+          diploma_urls: string[] | null
+          education: string | null
+          id: string
+          is_advocate: boolean
+          languages: string[] | null
+          license_number: string | null
+          photo_url: string | null
+          practice_areas: string[] | null
+          region: string | null
+          updated_at: string
+          user_id: string
+          work_experience: string | null
+          years_experience: number | null
+        }
+        Insert: {
+          additional_education?: string | null
+          advocate_since?: string | null
+          bar_chamber?: string | null
+          bio?: string | null
+          city?: string | null
+          completed?: boolean
+          created_at?: string
+          diploma_urls?: string[] | null
+          education?: string | null
+          id?: string
+          is_advocate?: boolean
+          languages?: string[] | null
+          license_number?: string | null
+          photo_url?: string | null
+          practice_areas?: string[] | null
+          region?: string | null
+          updated_at?: string
+          user_id: string
+          work_experience?: string | null
+          years_experience?: number | null
+        }
+        Update: {
+          additional_education?: string | null
+          advocate_since?: string | null
+          bar_chamber?: string | null
+          bio?: string | null
+          city?: string | null
+          completed?: boolean
+          created_at?: string
+          diploma_urls?: string[] | null
+          education?: string | null
+          id?: string
+          is_advocate?: boolean
+          languages?: string[] | null
+          license_number?: string | null
+          photo_url?: string | null
+          practice_areas?: string[] | null
+          region?: string | null
+          updated_at?: string
+          user_id?: string
+          work_experience?: string | null
+          years_experience?: number | null
+        }
+        Relationships: []
+      }
       lead_contacts: {
         Row: {
           consent_personal_data: boolean
