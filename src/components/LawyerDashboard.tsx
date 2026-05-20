@@ -16,10 +16,21 @@ const urgencyMap: Record<string, { label: string; color: string }> = {
 
 const LawyerDashboard = () => {
   const { leads, loading, purchase } = useLeads();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [revealedContacts, setRevealedContacts] = useState<Record<string, string>>({});
+  const [profileCompleted, setProfileCompleted] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("lawyer_profiles")
+      .select("completed")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setProfileCompleted(data?.completed ?? false));
+  }, [user]);
 
   const handleConfirm = async () => {
     if (!confirmId) return;
