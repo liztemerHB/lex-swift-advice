@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Scale, Briefcase, Loader2, MapPin, Phone, LogOut, UserCircle2, MessageCircle, IdCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
@@ -20,7 +20,9 @@ const LawyerDashboard = () => {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [revealedContacts, setRevealedContacts] = useState<Record<string, string>>({});
+  const [threadByLead, setThreadByLead] = useState<Record<string, string>>({});
   const [profileCompleted, setProfileCompleted] = useState<boolean | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user) return;
@@ -30,6 +32,15 @@ const LawyerDashboard = () => {
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => setProfileCompleted(data?.completed ?? false));
+    supabase
+      .from("chat_threads")
+      .select("id, lead_id")
+      .eq("lawyer_id", user.id)
+      .then(({ data }) => {
+        const map: Record<string, string> = {};
+        (data ?? []).forEach((t: any) => { if (t.lead_id) map[t.lead_id] = t.id; });
+        setThreadByLead(map);
+      });
   }, [user]);
 
   const handleConfirm = async () => {
@@ -38,6 +49,14 @@ const LawyerDashboard = () => {
     try {
       const res = await purchase(confirmId);
       if (res.contact) setRevealedContacts((p) => ({ ...p, [confirmId]: res.contact! }));
+      // fetch thread for this lead
+      const { data: t } = await supabase
+        .from("chat_threads")
+        .select("id")
+        .eq("lead_id", confirmId)
+        .eq("lawyer_id", user!.id)
+        .maybeSingle();
+      if (t?.id) setThreadByLead((p) => ({ ...p, [confirmId]: t.id }));
       toast.success("Контакты открыты");
     } catch (e: any) {
       toast.error(e.message ?? "Ошибка покупки");
@@ -138,21 +157,33 @@ const LawyerDashboard = () => {
                     <p className="text-xs text-muted-foreground">Цена лида: {lead.price_rub} ₽</p>
                   </div>
 
-                  {contact ? (
+                  {contact && (
                     <div className="flex items-center gap-2 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
                       <Phone className="h-4 w-4" />
                       <span className="font-medium">{contact}</span>
                     </div>
+                  )}
+
+                  {threadByLead[lead.id] ? (
+                    <Button
+                      variant="hero"
+                      size="sm"
+                      className="w-full rounded-lg"
+                      onClick={() => navigate(`/chat/${threadByLead[lead.id]}`)}
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      Открыть чат с клиентом
+                    </Button>
                   ) : lead.status === "available" ? (
                     <Button variant="hero" size="sm" className="w-full rounded-lg" onClick={() => setConfirmId(lead.id)}>
                       <Briefcase className="h-3.5 w-3.5" />
                       Взять в работу
                     </Button>
-                  ) : (
+                  ) : !contact ? (
                     <Button variant="outline" size="sm" className="w-full rounded-lg" onClick={() => setConfirmId(lead.id)}>
                       Открыть контакт
                     </Button>
-                  )}
+                  ) : null}
                 </div>
               );
             })}
