@@ -372,11 +372,16 @@ const Account = () => {
                 </TableBody>
               </Table>
             </Card>
-            <Button asChild variant="outline">
-              <Link to="/lawyer">
-                <Briefcase className="h-4 w-4" /> Перейти к доске лидов
-              </Link>
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline">
+                <Link to="/lawyer">
+                  <Briefcase className="h-4 w-4" /> Перейти к доске лидов
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/chats">💬 Чаты с клиентами</Link>
+              </Button>
+            </div>
           </>
         )}
 
