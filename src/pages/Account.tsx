@@ -163,6 +163,9 @@ const Account = () => {
             <span className="font-bold tracking-tight">LexAdvice</span>
           </Link>
           <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/chats">💬 Чаты</Link>
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
               <ArrowLeft className="h-4 w-4" /> Назад
             </Button>
@@ -372,11 +375,16 @@ const Account = () => {
                 </TableBody>
               </Table>
             </Card>
-            <Button asChild variant="outline">
-              <Link to="/lawyer">
-                <Briefcase className="h-4 w-4" /> Перейти к доске лидов
-              </Link>
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline">
+                <Link to="/lawyer">
+                  <Briefcase className="h-4 w-4" /> Перейти к доске лидов
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/chats">💬 Чаты с клиентами</Link>
+              </Button>
+            </div>
           </>
         )}
 
