@@ -82,7 +82,7 @@ const AuthPage = () => {
       toast.error(error.message);
       return;
     }
-    toast.success("Аккаунт создан. Вы вошли в систему.");
+    toast.success("Письмо с подтверждением отправлено. Проверьте почту, чтобы активировать аккаунт.");
   };
 
   const handleTelegramLogin = async () => {
