@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Loader2, Save, KeyRound, Coins, Wallet, FileText, Shield } from "lucide-react";
+import { ArrowLeft, Loader2, Save, KeyRound, Coins, Wallet, FileText, Shield, Briefcase } from "lucide-react";
 import { toast } from "sonner";
 
 type Profile = { id: string; email: string | null; full_name: string | null; created_at: string };
