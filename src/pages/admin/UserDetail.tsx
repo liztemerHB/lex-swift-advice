@@ -41,13 +41,15 @@ const UserDetail = () => {
   useEffect(() => {
     if (!id) return;
     const load = async () => {
-      const [{ data: prof }, { data: cr }, { data: rl }, { data: pu }, { count }] = await Promise.all([
+      const [{ data: prof }, { data: cr }, { data: rl }, { data: pu }, { count }, { data: app }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
         supabase.from("user_credits").select("*").eq("user_id", id).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", id),
         supabase.from("document_purchases").select("*").eq("user_id", id).order("created_at", { ascending: false }),
         supabase.from("cases").select("id", { count: "exact", head: true }).eq("user_id", id),
+        supabase.from("lawyer_applications").select("id").eq("user_id", id).maybeSingle(),
       ]);
+      setHasLawyerApp(!!app);
       if (prof) {
         setProfile(prof as any);
         setFullName(prof.full_name ?? "");
