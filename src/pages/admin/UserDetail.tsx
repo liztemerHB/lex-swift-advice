@@ -282,6 +282,21 @@ const UserDetail = () => {
             );
           })}
         </div>
+        <Separator />
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            Если пользователь регистрировался как юрист, но заявка не создалась — создайте её вручную, и она появится в разделе «Заявки юристов» на рассмотрение.
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={createLawyerApplication}
+            disabled={creatingApp || hasLawyerApp}
+          >
+            {creatingApp ? <Loader2 className="h-4 w-4 animate-spin" /> : <Briefcase className="h-4 w-4" />}
+            {hasLawyerApp ? "Заявка юриста уже существует" : "Создать заявку юриста"}
+          </Button>
+        </div>
       </Card>
 
       {/* Purchases */}
