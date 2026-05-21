@@ -115,6 +115,21 @@ const UserDetail = () => {
     }
   };
 
+  const createLawyerApplication = async () => {
+    if (!id) return;
+    setCreatingApp(true);
+    const { error } = await supabase.from("lawyer_applications").insert({
+      user_id: id,
+      full_name: fullName || profile?.full_name || "",
+      email: email || profile?.email || "",
+      status: "pending",
+    });
+    setCreatingApp(false);
+    if (error) return toast.error(error.message);
+    setHasLawyerApp(true);
+    toast.success("Заявка юриста создана. Откройте раздел «Заявки юристов».");
+  };
+
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
