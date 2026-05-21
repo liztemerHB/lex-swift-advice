@@ -53,13 +53,9 @@ const LawyerAuth = () => {
       toast.error(error.message);
       return;
     }
-    if (data.user?.id) {
-      // Fire-and-forget admin notification
-      supabase.functions
-        .invoke("notify-lawyer-application", { body: { user_id: data.user.id } })
-        .catch((err) => console.error("notify failed", err));
-    }
-    toast.success("Заявка отправлена. После подтверждения администратором вы получите доступ.");
+    toast.success(
+      "Письмо с подтверждением отправлено. После подтверждения email заявка уйдёт администратору на проверку.",
+    );
   };
 
   return (
