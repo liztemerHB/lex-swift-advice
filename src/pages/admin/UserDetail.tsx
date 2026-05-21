@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Loader2, Save, KeyRound, Coins, Wallet, FileText, Shield } from "lucide-react";
+import { ArrowLeft, Loader2, Save, KeyRound, Coins, Wallet, FileText, Shield, Briefcase } from "lucide-react";
 import { toast } from "sonner";
 
 type Profile = { id: string; email: string | null; full_name: string | null; created_at: string };
@@ -30,6 +30,8 @@ const UserDetail = () => {
   const [roles, setRoles] = useState<Role[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [casesCount, setCasesCount] = useState(0);
+  const [hasLawyerApp, setHasLawyerApp] = useState(false);
+  const [creatingApp, setCreatingApp] = useState(false);
 
   // Editable
   const [fullName, setFullName] = useState("");
@@ -39,13 +41,15 @@ const UserDetail = () => {
   useEffect(() => {
     if (!id) return;
     const load = async () => {
-      const [{ data: prof }, { data: cr }, { data: rl }, { data: pu }, { count }] = await Promise.all([
+      const [{ data: prof }, { data: cr }, { data: rl }, { data: pu }, { count }, { data: app }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
         supabase.from("user_credits").select("*").eq("user_id", id).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", id),
         supabase.from("document_purchases").select("*").eq("user_id", id).order("created_at", { ascending: false }),
         supabase.from("cases").select("id", { count: "exact", head: true }).eq("user_id", id),
+        supabase.from("lawyer_applications").select("id").eq("user_id", id).maybeSingle(),
       ]);
+      setHasLawyerApp(!!app);
       if (prof) {
         setProfile(prof as any);
         setFullName(prof.full_name ?? "");
@@ -109,6 +113,21 @@ const UserDetail = () => {
       if (error) return toast.error(error.message);
       setRoles([...roles, r]);
     }
+  };
+
+  const createLawyerApplication = async () => {
+    if (!id) return;
+    setCreatingApp(true);
+    const { error } = await supabase.from("lawyer_applications").insert({
+      user_id: id,
+      full_name: fullName || profile?.full_name || "",
+      email: email || profile?.email || "",
+      status: "pending",
+    });
+    setCreatingApp(false);
+    if (error) return toast.error(error.message);
+    setHasLawyerApp(true);
+    toast.success("Заявка юриста создана. Откройте раздел «Заявки юристов».");
   };
 
   if (loading) {
@@ -262,6 +281,21 @@ const UserDetail = () => {
               </Button>
             );
           })}
+        </div>
+        <Separator />
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            Если пользователь регистрировался как юрист, но заявка не создалась — создайте её вручную, и она появится в разделе «Заявки юристов» на рассмотрение.
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={createLawyerApplication}
+            disabled={creatingApp || hasLawyerApp}
+          >
+            {creatingApp ? <Loader2 className="h-4 w-4 animate-spin" /> : <Briefcase className="h-4 w-4" />}
+            {hasLawyerApp ? "Заявка юриста уже существует" : "Создать заявку юриста"}
+          </Button>
         </div>
       </Card>
 
