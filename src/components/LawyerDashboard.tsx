@@ -152,7 +152,9 @@ const LawyerDashboard = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {leads.map((lead) => {
+            {leads
+              .filter((lead) => lead.status === "available" || purchasedLeadIds.has(lead.id))
+              .map((lead) => {
               const u = urgencyMap[lead.urgency ?? "low"] ?? urgencyMap.low;
               const contact = revealedContacts[lead.id];
               const purchased = purchasedLeadIds.has(lead.id);
