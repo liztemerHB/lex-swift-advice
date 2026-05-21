@@ -30,6 +30,8 @@ const UserDetail = () => {
   const [roles, setRoles] = useState<Role[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [casesCount, setCasesCount] = useState(0);
+  const [hasLawyerApp, setHasLawyerApp] = useState(false);
+  const [creatingApp, setCreatingApp] = useState(false);
 
   // Editable
   const [fullName, setFullName] = useState("");
