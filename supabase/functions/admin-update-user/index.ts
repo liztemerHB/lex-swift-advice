@@ -16,14 +16,14 @@ Deno.serve(async (req) => {
     const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
 
     const auth = req.headers.get("Authorization") ?? "";
-    if (!auth) return json({ error: "no auth" }, 401);
+    if (!auth.startsWith("Bearer ")) return json({ error: "no auth" }, 401);
+    const token = auth.replace("Bearer ", "");
 
-    // Verify caller is admin
-    const userClient = createClient(SUPABASE_URL, ANON, {
-      global: { headers: { Authorization: auth } },
-    });
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user) return json({ error: "unauthorized" }, 401);
+    // Verify caller via JWT claims (no session lookup needed)
+    const userClient = createClient(SUPABASE_URL, ANON);
+    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) return json({ error: "unauthorized" }, 401);
+    const callerId = claimsData.claims.sub as string;
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
     const { data: roles } = await admin
