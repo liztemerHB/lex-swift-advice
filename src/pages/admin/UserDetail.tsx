@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Loader2, Save, KeyRound, Coins, Wallet, FileText, Shield, Briefcase } from "lucide-react";
+import { ArrowLeft, Loader2, Save, KeyRound, Coins, Wallet, FileText, Shield, Briefcase, UserCog, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 type Profile = { id: string; email: string | null; full_name: string | null; created_at: string };
@@ -282,6 +282,22 @@ const UserDetail = () => {
             );
           })}
         </div>
+        <Separator />
+        {roles.includes("lawyer") && (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">Профиль юриста виден клиентам при подборе.</p>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="hero" onClick={() => navigate(`/admin/lawyers/${id}`)}>
+                <UserCog className="h-4 w-4" /> Редактировать профиль юриста
+              </Button>
+              <Button size="sm" variant="outline" asChild>
+                <a href={`/lawyers/${id}`} target="_blank" rel="noreferrer">
+                  <Eye className="h-4 w-4" /> Как видит клиент
+                </a>
+              </Button>
+            </div>
+          </div>
+        )}
         <Separator />
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground">
