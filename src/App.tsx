@@ -25,6 +25,7 @@ import Analytics from "./pages/admin/Analytics";
 import Finance from "./pages/admin/Finance";
 import Funnel from "./pages/admin/Funnel";
 import LawyerApplications from "./pages/admin/LawyerApplications";
+import LawyerProfileAdminEdit from "./pages/admin/LawyerProfileAdminEdit";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -108,6 +109,7 @@ const App = () => (
               <Route path="users/:id" element={<UserDetail />} />
               <Route path="cases" element={<Cases />} />
               <Route path="lawyer-applications" element={<LawyerApplications />} />
+              <Route path="lawyers/:id" element={<LawyerProfileAdminEdit />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
